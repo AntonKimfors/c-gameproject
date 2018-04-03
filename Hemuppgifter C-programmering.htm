@@ -1,0 +1,2310 @@
+
+<!-- saved from url=(0074)http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/hemuppgifter-forel4.html -->
+<html class="gr__cse_chalmers_se"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+   <meta name="Author" content="Ulf Assarsson">
+   
+   <title>Hemuppgifter C-programmering</title>	
+   <link rel="stylesheet" type="text/css" href="./Hemuppgifter C-programmering_files/hemuppgifter.css" media="all">
+<script type="text/javascript" src="./Hemuppgifter C-programmering_files/javascripts.js"></script></head>
+
+
+
+<body data-gr-c-s-loaded="true">
+	
+	
+<header>
+	<font size="4"> Maskinorienterad Programmering / Programmering av Inbyggda System
+	<br><br><b>Hemuppgifter C-programmering </b>
+   	</font>
+	<ul class="tabrow"> &nbsp;
+	    <li><a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/hemuppgifter.html">Förel. 1</a></li>
+	    <li><a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/hemuppgifter-forel2.html">Förel. 2</a></li>
+	    <li><a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/hemuppgifter-forel3.html">Förel. 3</a></li>
+	    <li class="selected"><a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/hemuppgifter-forel4.html">Förel. 4</a></li>
+	    <li><a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/hemuppgifter-forel5.html">Förel. 5</a></li>
+	</ul>
+</header>
+	
+	
+<div class="contentcontainer">
+	
+<!-- #### section #### -->
+		
+	<div class="contentsection codesection" style="padding-bottom: 0px;">	
+	
+		<h3>C - Föreläsning 4.</h3>
+
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+		<p>Denna vecka skall vi öva oss på bl a: extern, static, enum, och separata .c-filer. </p>
+
+		</div>
+	</div>
+
+	<div class="contentsection codesection" style="padding-bottom: 0px;">
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+		<div class="uppg">
+		<dl>
+		   <dt style="text-align: left;">Deklara-tion vs Definition</dt>
+		   <dd> <b>En deklaration</b> talar endast om för kompilatorn vad en variabel eller funktion har för typ. <b>En definition</b> beskriver variabeln/funktionen i dess helhet,
+dvs en <b>funktionsdefinition</b> innehåller även funktionskroppen, medan en <b>variabeldefinition</b> instansierar variabeln: <br>
+		   <div class="codeblock">void func(); // deklaration av funktion
+void func()  // definition av funktion
+{
+    ...
+}
+
+int a;       // Definition och instansiering av variabel.
+</div>
+För ren deklaration av variabel - se extern nedan.
+<br>
+		   </dd>
+
+		
+		   <dt style="text-align:left;">Globala<br>vs lokala variabler</dt>
+		   <dd> <b>Global vs lokal variabel:</b> En global variabel är definierad utanför en funktion och hamnar typiskt i <i>datasegmentet</i>, dvs inte på stacken, i programmets adressrymd. Därmed existerar en global variabel under hela programmets exekveringstid. En lokal variabel är definierad inuti en funktion och hamnar på stacken. Därmed är den flyktig, dvs upphör att existera när funktionen returnerat. <br>
+		   <div class="codeblock">char str1[] =  "hej"; // global variabel
+void func()
+{
+    char str2[] = "då"; // lokal variabel
+}
+</div>
+<br>
+		   </dd>
+		   
+		   <dt>static</dt>
+		   <dd>
+Man kan definiera en variabel som <span style="font-family: Monaco, monospace;">static</span>. Det betyder att den bara är synlig inom det scope där den skapas (inklusive underliggande scopes) men adressen för variabeln hamnar i datasegmentet precis som hos globala variabler. Effekten blir följande:
+<br>
+<b>Lokal variabel definierad som <span style="font-family: Monaco, monospace;">static</span>:</b> Variabeln behåller sitt värde mellan funktionsanrop, precis som om det vore en global variabel, men variabeln syns bara inom funktionen.
+		   <div class="codeblock">void func()
+{
+    static int nTimes; // static-variabel med lokal synlighet. 
+    nTimes++;    // ökar värdet varje gång funktionen anropas.
+}
+</div>
+<p> <b>Global variabel definierad som <span style="font-family: Monaco, monospace;">static</span>:</b> Variabeln syns bara inom c-filen. Vid länkningen slipper man namnkonflikter med globala variabler i andra .c-filer som heter samma sak.</p>
+<table style="margin-left: 0px; margin-top: -10px; width: 100%;">
+<tbody><tr>
+<td>
+fil1.c
+<div class="codeblock" style="padding: 0;">...
+static int tmp;
+</div></td>
+<td>fil2.c
+<div class="codeblock" style="padding: 0;">...
+static int tmp;
+</div>
+</td>
+</tr>
+</tbody></table>
+
+
+<p> <b>Funktion definierad som <span style="font-family: Monaco, monospace;">static</span>:</b>
+Funktioner ligger alltid i kodsegmentet i programmets adressrymd (som även typiskt är skrivskyddat av operativsystemet). Med static blir synligheten hos funktionsnamnet begränsat till .c-filen. Dvs andra .c-filer kan innehålla en funktion med samma namn utan konflikt vid länkningen.</p>
+<p>
+<table style="margin-left: 0px; margin-top: -10px; width: 100%;">
+<tbody><tr>
+<td>
+player.c
+<div class="codeblock" style="padding: 0;">...
+static void update(...);
+</div></td>
+<td>background.c
+<div class="codeblock" style="padding: 0;">...
+static void update(...);
+</div>
+</td>
+</tr>
+</tbody></table>
+</p>
+
+
+
+<p> <b>Deklaration med <span style="font-family: Monaco, monospace;">static</span>:</b>
+Om man gör en deklaration av en funktion som är definierad med static skall deklarationen också använda static. </p>
+<p>
+<table style="margin-left: 0px; margin-top: -10px; width: 100%;">
+<tbody><tr>
+<td>
+exempel.c
+<div class="codeblock" style="padding: 0;">...
+static void update();
+...
+static void update(...)
+{
+   ...
+}</div></td>
+</tr>
+</tbody></table>
+</p>
+
+
+
+		   </dd>
+		</dl>
+		<br>
+		<dl>		
+		   <dt>extern</dt>
+		   <dd> <b>Extern</b> talar om att man endast gör en deklaration (ej definition) av en funktion eller variabel och att definitionen (instansen) finns någon annanstans - senare i samma fil eller i annan fil. Extern är främst användbart för variabeldeklarationer vilket innebär att man inte skapar en ny variabel utan endast talar om för kompilatorn vad den har för typ. Variabelns adress kommer att bli känd vid länkningen eller eller senare i samma fil. (Det går inte att använda extern för att göra en lokal variabel synlig utanför sin funktion, eftersom variabeln ligger på stacken och dess adress är flyktig och inte känd vid länkning.)<br>
+<b>Extern för variabel:</b>
+<div class="codeblock">extern const Uint8 *state; 
+</div>
+
+<p><b>Extern för funktion:</b> Rena deklarationer är lätt att göra för funktioner, så extern behövs egentligen ej för funktionsdeklarationer:
+</p><div class="codeblock" style="margin-top: -10px;">extern void update(); 
+// är samma sak som:
+void update();
+</div>
+<p></p>
+
+
+
+		   </dd>
+		</dl>
+		<br>
+		<dl>		
+		   <dt style="text-align: left;">Separata .h- och .c-<br>filer för objekt</dt>
+		   <dd>  Med include guards inkluderas en .h-fil max en gång per .c-fil som kompileras. Detta löser t ex att structs som definieras i .h-filen inte blir definierade mer än en gång.<br>
+
+&nbsp; &nbsp; &nbsp; Men... .h-filen blir alltså inkluderad en gång per .c-fil som använder den, och 
+ därför är det viktigt att <b>inte</b> lägga <b>definitioner</b> av <b>globala variabler och funktioner</b> i .h-filer. Annars skapas variabeln/funktionen en gång per .c-fil som inkluderar .h-filen. Vid länkningen skulle detta medföra att länkaren kommer att klaga på "duplicate symbol" av en och samma variabel/funktion, eftersom den blivit instansierad för varje motsvarande .c-fil.
+<br>
+
+&nbsp; &nbsp; &nbsp; Istället lägger man endast <b>deklarationerna</b> i .h-filen - och definitionerna i motsvarande .c-fil.   Endast deklaration (utan definition) för variabler gör man som sagt med <span style="font-family: Monaco, monospace;">extern</span>, vilket talar om att definitionen kommer senare (typiskt i en annan .c-fil).
+
+<p> <b>Deklarationer</b> av en och samma variabel eller funktion får däremot förekomma hur många gånger som helst, så länge deklarationen inte ändras. </p> 
+		   </dd>
+		   </dl>
+		   </div> <!-- uppg. -->
+<table style="margin-left:30px;">
+<tbody><tr>
+<td>
+exempel.h
+<div class="codeblock" style="padding-left: 0; padding-right: 0;">#ifndef EXEMPEL_H
+#define EXEMPEL_H
+
+typedef struct {    // typ- 
+  int x, y;         // definition
+} Position;         // 
+
+extern char str1[]; // deklaration
+void func();        // deklaration
+
+#endif // EXEMPEL_H
+</div>
+</td>
+<td>
+exempel.c
+<div class="codeblock" style="padding-left: 0; padding-right: 0;">#include exempel.h    // för typer
+                      // etc.
+
+char str1[] =  "hej"; // definition
+
+void func()	      // definition
+{
+    char str2[] = "då";
+}
+
+
+</div>
+</td>
+</tr>
+</tbody></table>
+		<div class="uppg">
+		<dl><dt style="visibility: hidden;">hehheh</dt>
+		<dd>
+
+
+		   </dd>
+		   </dl>
+		   </div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+	</div> <!-- contentsection codesection -->
+
+
+
+
+	
+	<div class="contentsection codesection">		
+
+		<div class="contentbody" style="text-align: justify;">
+
+		<div class="uppg">
+		<dl>		
+		   <dt>Uppg. 1</dt>
+		   <dd> <b> Flera .c-filer. Extern. </b><br>
+<p><b>Här är det meningen att du skall lära dig hur man lägger funktionalitet i en .c-fil och gör motsvarande deklaration i .h-filen och inkluderar .h-filen i den/de .c-filer där du behöver använda funktionen, structen eller variabeln.</b></p>
+Vi fortsätter med förra veckans projekt och där vi slutade. Det är lämpligt att separera ut kod för skeppet och bakgrunden (och övriga spelobjekt som du kanske skapat) från main.c till separata filer.  Du gör det med hjälp av följande steg:
+<ol>
+<li> Flytta updateShip()- och updateBackground()-funktionerna till player.h/.c samt background.h/.c. </li>
+
+<li> Tangentbordsavkänningen, som används för bakgrunden och skeppet, använder sig av variabeln <span style="font-family: Monaco, monospace;">state</span> som ligger i main()-funktionen. Om du inte redan gjort det, gör denna variabel global i main.c men låt tilldelningen ligga kvar i början av main()-funktionen, före realtidsloopen. Nu kan man få åtkomst till variabeln i player.c och background.c genom att deklarera den med extern någonstans var som helst ovanför där du behöver använda den - förslagsvis högst upp i respektive .c-fil efter alla #include...</li>
+
+<li>Eftersom render()-funktionen (som ligger i main.c) just nu är gemensam för bakgrunden och skeppet kan du flytta den funktionen till gameobjects.c (med deklaration i gameobjects.h så klart). </li>
+
+<li>För övnings skull, flytta din instansiering av <span style="font-family: Monaco, monospace;">GameObject ship, background; </span> till respektive .h- och .c-filer.<p></p>
+<script>startTips("tips", "margin-top: -10px; width: auto;")</script><div class="tips" style="margin-top: -10px; width: auto;"> <input id="toggleID1" type="checkbox"><label for="toggleID1">tips</label><div class="expand">
+ Dvs du lägger instansieringen <span style="font-family: Monaco, monospace;">GameObject ship;</span> i player.c och en ren deklaration <span style="font-family: Monaco, monospace;">extern GameObject ship;</span> i player.h (se bilden ovan för exempel.h/c). Genom att inkludera player.h i en .c-fil (t ex main.c) får du åtkomst till <span style="font-family: Monaco, monospace;">ship</span> där. Likadant gör du för background.
+<script>endTips();</script></div></div>
+</li>
+
+Kompilera och testa att allt fungerar som förut.
+
+
+
+		  </ol></dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID2" type="checkbox"><label for="toggleID2" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<div class="codeblock"><u>gameobject.h:</u>
+#ifndef GAMEOBJECT_H
+#define GAMEOBJECT_H
+
+#include "renderer.h"
+#include "vecmath.h"
+
+typedef struct tGameObject{
+    GfxObject   gfxObj;
+    vec2f       pos;
+    float       speed;
+    double      angle, angleSpeed;
+    float       scale, scaleSpeed;
+    
+    void        (*update) (struct tGameObject* gameobj);
+    void        (*render) (struct tGameObject* gameobj);
+} GameObject;
+
+
+void render(GameObject* this);
+
+#endif // GAMEOBJECT_H
+<hr><u>gameobject.c:</u>
+#include "gameobject.h"
+#include "renderer.h"
+
+void render(GameObject* this)
+{
+    renderGfxObject(&amp;this-&gt;gfxObj, this-&gt;pos.x, this-&gt;pos.y, this-&gt;angle, this-&gt;scale);    
+}
+
+<hr><u>player.h:</u>
+#ifndef PLAYER_H
+#define PLAYER_H
+
+#include "gameobject.h"
+
+extern GameObject ship;
+
+void updateShip(GameObject* this);
+
+#endif // PLAYER_H
+<hr><u>player.c:</u>
+#include "player.h"
+#include <math.h>   // för fmod()
+
+extern const Uint8 *state;
+
+GameObject ship;
+
+void updateShip(GameObject* this)
+{
+    if (state[SDL_SCANCODE_RIGHT])
+        this-&gt;pos.x = (this-&gt;pos.x+this-&gt;speed &gt;= 799) ? 799 : this-&gt;pos.x+this-&gt;speed;
+    if (state[SDL_SCANCODE_LEFT])
+        this-&gt;pos.x = (this-&gt;pos.x-this-&gt;speed &lt;= 0) ? 0 : this-&gt;pos.x-this-&gt;speed; 
+    if (state[SDL_SCANCODE_DOWN])
+        this-&gt;pos.y = (this-&gt;pos.y+this-&gt;speed &gt;= 599) ? 599 : this-&gt;pos.y+this-&gt;speed;           
+    if (state[SDL_SCANCODE_UP])
+        this-&gt;pos.y = (this-&gt;pos.y-this-&gt;speed &lt;= 0) ? 0 : this-&gt;pos.y-this-&gt;speed;
+
+    if (state[SDL_SCANCODE_A])
+        this-&gt;angle = fmod(this-&gt;angle - this-&gt;angleSpeed, 360.0);           
+    if (state[SDL_SCANCODE_D])
+        this-&gt;angle = fmod(this-&gt;angle + this-&gt;angleSpeed, 360.0);    
+}
+<hr><u>background.h:</u>
+#ifndef BACKGROUND_H
+#define BACKGROUND_H
+
+#include "gameobject.h"
+
+extern GameObject background;
+void updateBackground(GameObject* this);
+
+#endif // BACKGROUND_H
+<hr><u>background.c:</u>
+#include "background.h"
+
+extern const Uint8 *state;
+
+GameObject background;
+
+void updateBackground(GameObject* this)
+{
+    this-&gt;angle = fmod(this-&gt;angle+0.02, 360);
+    this-&gt;scale += 1.0/2500.0;
+
+    if (state[SDL_SCANCODE_W])
+        this-&gt;scale = this-&gt;scale + this-&gt;scaleSpeed;           
+    if (state[SDL_SCANCODE_S])
+        this-&gt;scale = (this-&gt;scale - this-&gt;scaleSpeed &lt;= 0) ? 0 : 
+                            this-&gt;scale - this-&gt;scaleSpeed;    
+}
+
+<hr><u>main.c</u>
+...
+#include "vecmath.h"
+#include "gameobject.h"
+<b>#include "player.h"
+#include "background.h"
+
+const Uint8 *state;</b>
+
+GameObject* gameObjects[] = {&amp;background, &amp;ship};
+int nGameObjects = 2;
+
+...
+int main( int argc, char* args[] )
+{
+    ...
+
+    <b>state = SDL_GetKeyboardState(NULL);</b> // get pointer to key states 
+    ...
+    
+    while(true) // The real-time loop
+    {
+        ...
+</math.h></div>
+<script>endLosningWide();</script></div></div>
+
+		<div class="contentbody">
+		<div class="uppg" style="text-align: right;">
+		<a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/main_w4_uppg1.c">Komplett version av main.c finner du här.</a><br>
+		<a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/player_w4_uppg1.c">Komplett version av player.c.</a><br>
+		<a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/player_w4_uppg1.h">Komplett version av player.h.</a><br>
+		<a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/background_w4_uppg1.c">Komplett version av background.c.</a><br>			<a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/background_w4_uppg1.h">Komplett version av background.h.</a>
+		</div>
+		<br>
+		<div class="uppg">
+		<dl>		
+		   <dt>Uppg. 2</dt>
+		   <dd> Som en sista kontroll av att du förstått hur man kan flytta kod till olika filer med dess konsekvenser, flytta arrayen <span style="font-family: Monaco, monospace;"> gameObjects</span> samt <span style="font-family: Monaco, monospace;"> int nGameObjects</span> från main.c till gameobjects.c resp. gameobjects.h. Initiera de båda i main()-funktionen innan realtidsloopen. Gör eventuell övrig modifiering som krävs för att koden ska fungera. Kompilera och testa att programmet fungerar som förut.
+
+<script>startTips("tips", "width: auto;");</script><div class="tips" style="width: auto;"> <input id="toggleID3" type="checkbox"><label for="toggleID3">tips</label><div class="expand">
+Försök först själv. Är du ovan kan det vara lite lurigt och krävas att du tänker efter.
+<li> Arrayen gameObjects ska initieras med adresserna till background och ship (i rätt ordning så inte bakgrunden ritar över skeppet) i main() innan realtidsloopen.
+</li>
+<li>
+Definiera (dvs skapa) arrayen gameObjects i gameobjects.c. Här måste du tala om hur många element som arrayen ska ha plats för. Ta gärna till lite i överkant så du kan lägga till objekt senare. Flytta även <span style="font-family: Monaco, monospace;"> nGameObjects = 2;</span> hit.
+</li>
+<li> Deklarera de två variablerna i gameobjects.h</li>
+
+<script>endTips();</script></div></div>
+
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID4" type="checkbox"><label for="toggleID4" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/flyttagameObjects.jpg" width="650"><br>
+<script>endLosningWide();</script></div></div>
+</div>
+
+
+
+
+
+
+	<div class="contentsection codesection">		
+		<h3>Programstruktur och Objektallokering</h3>
+
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+		
+		<p>Förra veckan lärde vi oss att gruppera variabler, som på något sätt tillhör ett och samma objekt, i structs. Vi har nu lärt oss att man lägger struct-definitionen i .h-filen, medan definitionerna av metoder och eventuellt andra funktioner som man tycker hör samman med sin struct läggs i .c-filen. Motsvarande deklarationer lägger man i .h-filen. </p>
+
+<p> Inom objektorientering lägger man gärna större structs i filer med samma namn som sin struct. Detta är t ex mycket tydligt i Java. Små structs (som kanske t om endast används av den större struct:en) kan gott och väl ligga i samma filer som den större struct:en. Inom så kallad <i>komponentbaserad programmering</i> till skillnad från objektorientering grupperar man gärna sin programkod baserad på funktionalitet. Det viktiga är att man själv skapar en kod- och filstruktur som man tycker är naturlig och begriplig. Ofta lägger man mycket tankeverksamhet just på att strukturera sin programkod och var man instansierar sina objekt.</p><br>
+
+		
+		<h4 style="margin-bottom: 10px;">Objektallokering</h4>
+
+		
+		Vi ska här gå igenom olika sätt hur man kan allokera minne för sina instanser av objekt.<br>
+
+<div class="codeblock" style="padding: 0;">int tmp[10]; // allokera i datasegmentet med global synlighet
+void func()
+{
+   int tmp2[10]; // allokera på stacken
+   static int tmp3[10]; // allokera i datasegmentet - med lokal synlighet
+
+   int *pTmp = malloc(sizeof(int) * 10); // allokera på heapen
+   ...
+   free(pTmp); // deallokera från heapen
+}</div>
+
+
+<p><b> Allokera globala variabler i datasegmentet</b><br>
+När vi skapar globala variabler läggs de i datasegmentet för programmets adressrymd. Att ha massa globala variabler utspridda i sin programkod anses dock synnerligen osnyggt. Man vill främja någon form av struktur. Det normala är att man skapar instanser av sina klasser antingen som lokala variabler (med livslängd tills dess att funktionen returnerar) eller genom att allokera dem på heapen.
+
+</p><p> <b> Allokera på stacken</b> Att allokera sina objektinstanser på stacken är oftast snyggast och att föredra om man kan. Det är då tydligt vilken funktion som instanserna tillhör samt vad de har för livslängd. Det är dock inte alltid det är praktiskt möjligt (t ex om instanserna ska fortsätta leva efter funktionen returnerat) och dessutom har stacken ofta mer begränsad storlek än heapen och datasegmentet. Stora minnesutrymmen allokerar man typiskt på heapen. </p>
+
+<p> <b>Allokera på heapen</b><br> I t ex Java, C++, och C# allokerar man på heapen med hjälp av <span style="font-family: Monaco, monospace;">new</span>. I C använder vi <span style="font-family: Monaco, monospace;">malloc()</span>. 
+
+ På MD407:an har vi dock inte automatiskt tillgång till <span style="font-family: Monaco, monospace;">malloc()</span>, då både <span style="font-family: Monaco, monospace;">malloc()</span> och <span style="font-family: Monaco, monospace;">new</span> är operativsystemsberoende funktioner. När malloc allokerar nytt minne från heapen så behöver den då och då be operativsystemet att tillgängliggöra mer virtuellt adressutrymme. Istället skall vi i dessa övningsuppgifter visa att man för många problem ofta klarar sig utmärkt utan att allokera på heapen. Maskinnära programmering innebär ofta programmering av realtidssystem där man emellanåt måste ha noggrann timing av skrivningar/läsningar eller har andra krav att funktioner måste exekvera klart inom en mycket kort tid. Allokering på heapen som kräver operativsystemsanrop tar ofta tämligen lång tid och är inget man vill göra tusentals gånger inuti en realtidsloop. I vissa fall kan ett anrop till malloc/new ta miljontals klockcykler. Istället kan man t ex allokera i datasegmentet (genom globala variabler eller variabler definierade som static). </p><br>
+
+ 
+<h4 style="margin-bottom: 10px;"> Så var bör vi instansiera våra spelobjekt?</h4>
+
+<p> Var bör vi lägga våra instanser av de två globala variablerna <span style="font-family: Monaco, monospace;">ship</span> och <span style="font-family: Monaco, monospace;">background</span>, samt eventuellt ytterligare spelobjekt? Ska de ligga som globala variabler i respektive .h- och .c-fil. Eller i main.c? Eller i en fil globals.h/.c? Våra objekt är visserligen tillräckligt små för att de ska få plats på stacken som lokala variabler (t ex i main()), men låt oss anta det mer generella fallet att vi kan ha både ordentligt många instanser och minnesmässigt stora objekt.</p>
+
+
+<p>För våra spelobjekt finns åtminstone tre olika naturliga sätt att placera dessa: i filen som använder objektet (t ex main.c), i .c-filen för sin struct  eller i en särskild .c- och .h-fil för globala variabler. I det sistnämnda fallet kan man dessutom skapa en övergripande game-struct. 
+</p>
+
+
+<p><b> I .c-filen som använder objektet: </b> dvs main.c i vårt fall, så som vi började innan vi flyttade <span style="font-family: Monaco, monospace;">ship</span> och <span style="font-family: Monaco, monospace;">background</span> till sina respektive .c/.h-filer.  En fördel är att detta alternativ är mycket enkelt och ofta tydligt vem som äger objektinstansen. En nackdel är att instansen även kan behövas användas av andra objekt i andra .c-filer. Att exportera det med <span style="font-family: Monaco, monospace;">extern</span> kan försvåra en snygg överskådlig struktur. Man kan skicka med instansen som inparameter till andra objekts metoder. Detta är ofta snyggt och i linje med objektorientering. Men det kan också lätt bli bökigare än att ha globala variabler som synliggörs med <span style="font-family: Monaco, monospace;">extern</span>. </p>
+
+<p><b>I .c-filen för sin struct:</b> dvs player.c resp. background.c (etc). Fördelen är att man då lättare kan lägga över kontrollen av allokeringen till objektets metoder. Man kan t om ofta med fördel skapa en funktion som är kopplad till klassen/structen som heter <span style="font-family: Monaco, monospace;">Create(...)</span> och returnerar adressen för ett instansierat och färdiginitierat objekt. Men man har, precis som i fallet ovan, fortfarande kvar problemet vad man gör om många andra objekt behöver åtkomst till instansen. Man skulle som sagt kunna lösa det genom att skicka med instansen som inparameter till andra objekts metoder.</p>
+
+<p><b>Alla globala variabler i en särskild fil globals.h/globals.c</b>
+Fördelen är att man faktiskt ofta lätt och överskådligt kan organisera alla sina globala variabler i en enda stor struct, t&nbsp;ex <span style="font-family: Monaco, monospace;">struct game</span> som i sin tur innehåller structs <span style="font-family: Monaco, monospace;">levels</span>, etc. En nackdel är att det kan bli otydligt vem som äger vilka instanser och när de skapas respektive när de försvinner. Alla objekt har åtkomst till allt, vilket är både för- och nackdel.
+</p>
+
+<p><b>Sammanfattning</b><br>
+Det finns inte endast ett sätt som är korrekt. 
+Valet av struktur är ofta ett avvägande mellan många parametrar, som storlek av projekt och enkelhet att implementera, att kunna göra tillägg, att förstå för sig själv och/eller andra, att få korrekt kod m.m. Välj ett sätt som passar dig bäst beroende på situationen. I föregående uppgift använde vi mittenalternativet - dvs lägger instanserna i .c-filen för sin struct - och våra lösningsförslag kommer att fortsätta med det. Om ett antal uppgifter kommer vi att lägga till en form av semi-dynamisk minnesallokering där instanserna också ligger i  i .c-filen för motsvarande datastruktur.</p> 
+
+</div>
+
+<br>
+<br>
+		<div class="contentbody">
+		<div class="uppg">
+		<dl>
+		   <dt>Uppg. 3</dt>
+		   <dd> 
+			(Övningsmoment: static, programmering på egen hand, )<br>
+Skapa en ny typ av spelobjekt (just nu har du background och ship), dvs som använder en annan bild. T ex kan du ta bilden bredvid.
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/alienship.png" height="100px" style="float: right;">
+Låt spelobjektet röra sig på skärmen på något sätt. 
+Lägg implementeringen i en ny fil som du kallar aliens.c med tillhörande aliens.h. 
+
+<p>Låt dina aliens-objekt vara av typen GameObject. Behöver du nya struct-medlemmar för att röra objekten så inför dem. Vi låter fortfarande struct GameObject vara ett superset av alla medlemmar som kan behövas av våra olika spelobjekt.</p>
+
+<ul style="padding-left:0px;">
+För att din programkod ska bli kompatibel med de tillägg vi ska göra senare, gör även följande:
+<li style="padding-bottom:0; margin-left: 16px;"> Gör en funktion void createAliens() i aliens.c/.h som skapar t ex tre aliens och även adderar deras adresser till array <span style="font-family: Monaco, monospace;">gameObjects[]</span>. Anropa createAliens() i main-funktionen innan realtidsloopen startar.</li>
+
+<li style="padding-bottom:0; margin-left: 16px;"> På samma ställe som anropet till createAliens(), anropa funktioner void createShip() och void createBackground() som initierar skeppet och bakgrunden. Dvs, flytta koden för att skapa skeppet och bakgrunden från main()-funktionen till createShip() i player.c/.h respektive createBackground() i background.c/h.  <br>
+<b> OBS. Objekten ritas ut i ordningen som de läggs i listan</b> <span style="font-family: Monaco, monospace;">gameObjects[]</span>. Därför, anropa createBackground() först och därefter de andra två. </li>
+</ul>
+
+<script>startTips("Tips om du behöver mer detaljerade instruktioner", "width: auto;")</script><div class="tips" style="width: auto;"> <input id="toggleID5" type="checkbox"><label for="toggleID5">Tips om du behöver mer detaljerade instruktioner</label><div class="expand">
+<ul style="padding-left:0px;">
+I aliens.c implementerar du följande funktioner:
+
+<li style="padding-bottom:0; margin-left: 16px;"> update()-funktionen som kontinuerligt förflyttar skeppet på något sätt inom skärmen.<br> 
+<b>Tips:</b> eftersom din update()-funktion inte behöver synas utanför aliens.c-filen kan du lämpligen definiera den som static. Dvs static void update() { ... }.</li>
+<li style="padding-bottom:0; margin-left: 16px;"> createAliens() som skapar t ex tre stycken aliens och lägger till dem till <span style="font-family: Monaco, monospace;">gameObjects[]</span>. Att lägga till ett objekt sist i arrayen är lätt och kan göras med:  <span style="font-family: Monaco, monospace;">gameObjects[nGameObjects++] = ...</span>.
+<br>
+
+Eftersom alla tre instanser använder samma bild (=textur) för utritningen så kan du skapa ett och endast ett GfxObject som används av alla tre. 
+</li>
+
+</ul>
+Exempel:<br>
+
+<div class="codeblock" style="padding-left: 5px;">static GameObject aliens[3];
+
+static void update(GameObject* this)
+{
+   this-&gt;pos.x += ...
+   ...
+}
+void createAliens()
+{
+    static GfxObject gfx; // ligger i datasegmentet men har
+    static bool bFirstTime = true; // endast lokal synlighet
+    
+    // It is unnecesary to load the image for every instance. 
+    // Just do it once:
+    if(bFirstTime) {
+        bFirstTime = false;
+        gfx = createGfxObject(  "../alienship.png" );
+    }
+    aliens[0].gfxObj = gfx;
+    aliens[0].update = update; // defined in this file
+    aliens[0].render = render; // defined in gameobjects.h
+    // initiera resten av medlemmarna i struct GameObject
+    ...
+    // Addera instansen till arrayen gameObjects
+    gameObjects[nGameObjects++] = &amp;aliens[0];
+
+    // gör nu samma sak för aliens[1] och aliens[2]...
+    aliens[1].gfxObj = gfx;
+    ... osv ...
+}</div>
+<script>endTips();</script></div></div>
+
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID6" type="checkbox"><label for="toggleID6" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<div class="codeblock"><u>aliens.h:</u>
+#ifndef ALIENS_H
+#define ALIENS_H
+
+void createAliens();
+
+#endif // ALIENS_H
+<hr><u>aliens.c</u>
+#include "aliens.h"
+#include "gameobject.h"
+#include "renderer.h"
+
+static GameObject aliens[3];
+
+static void update(GameObject* this)
+{
+
+   // update positions
+   this-&gt;pos.x += this-&gt;moveDir.x * this-&gt;speed;
+   this-&gt;pos.y += this-&gt;moveDir.y * this-&gt;speed;
+ 
+   // Hämta fönsterstorleken:
+   int screenWidth, screenHeight; 
+   SDL_GetWindowSize(gWindow, &amp;screenWidth, &amp;screenHeight);
+    
+   // Låt objektet studsa vid skärmkanterna    
+   if(this-&gt;pos.x &lt;= this-&gt;gfxObj.outputWidth/2 &amp;&amp; this-&gt;moveDir.x &lt; 0) {
+       int overflow = (this-&gt;gfxObj.outputWidth/2) - this-&gt;pos.x;
+       this-&gt;pos.x += 2*overflow;
+       this-&gt;moveDir.x = -this-&gt;moveDir.x;
+   }
+   if(this-&gt;pos.x &gt;= screenWidth - this-&gt;gfxObj.outputWidth/2 &amp;&amp; this-&gt;moveDir.x &gt; 0) 
+   {
+       int overflow = this-&gt;pos.x - (screenWidth - this-&gt;gfxObj.outputWidth/2);
+       this-&gt;pos.x -= 2*overflow;
+       this-&gt;moveDir.x = -this-&gt;moveDir.x;
+   }
+   
+   if(this-&gt;pos.y &lt;= this-&gt;gfxObj.outputHeight/2 &amp;&amp; this-&gt;moveDir.y &lt; 0) {
+      int overflow = (this-&gt;gfxObj.outputHeight/2) - this-&gt;pos.y;
+       this-&gt;pos.y += 2*overflow;
+       this-&gt;moveDir.y = -this-&gt;moveDir.y;
+   }
+   if(this-&gt;pos.y &gt;= screenHeight - this-&gt;gfxObj.outputHeight/2 &amp;&amp; this-&gt;moveDir.y &gt; 0)
+   {
+       int overflow = this-&gt;pos.y - (screenHeight - this-&gt;gfxObj.outputHeight/2);
+       this-&gt;pos.y -= 2*overflow;
+       this-&gt;moveDir.y = -this-&gt;moveDir.y;
+   }    
+}
+
+static void init(GameObject* pObj, GfxObject* pGfx, int w, int h, 
+                 vec2f pos, vec2f moveDir, float speed)
+{
+    pObj-&gt;gfxObj = *pGfx;
+    pObj-&gt;gfxObj.outputWidth  = w;
+    pObj-&gt;gfxObj.outputHeight = h;
+    pObj-&gt;pos = pos;
+    pObj-&gt;moveDir = moveDir;
+    pObj-&gt;speed = speed;
+    pObj-&gt;angle = 0;               // unused
+    pObj-&gt;angleSpeed = 0;          // unused
+    pObj-&gt;scale = 1.0f;
+    pObj-&gt;scaleSpeed = 0;          // unused
+    pObj-&gt;update = update;         // Our own update in this file
+    pObj-&gt;render = render;         // From gameobjects.h
+}
+
+void createAliens()
+{
+    static GfxObject gfx;
+    static bool bFirstTime = true;
+    
+    // It is unnecesary to load the image for every instance. Just do it once:
+    if(bFirstTime)
+    {
+        bFirstTime = false;
+        gfx = createGfxObject(  "../alienship.png" );
+    }
+    float speed = 5.0f;
+    int w = 100, h = 100;
+    init(&amp;aliens[0], &amp;gfx, w, h, (vec2f){100, -50}, (vec2f){1, 1},     speed);
+    init(&amp;aliens[1], &amp;gfx, w, h, (vec2f){200, -50}, (vec2f){0.66f, 1}, speed);
+    init(&amp;aliens[2], &amp;gfx, w, h, (vec2f){300, -50}, (vec2f){0.33f, 1}, speed);
+    gameObjects[nGameObjects++] = &amp;aliens[0];
+    gameObjects[nGameObjects++] = &amp;aliens[1];
+    gameObjects[nGameObjects++] = &amp;aliens[2];
+}
+<hr><u>main.c</u>
+...
+#include "gameobject.h"
+#include "player.h"
+#include "background.h"
+<b>#include "aliens.h"</b>
+...
+int main( int argc, char* args[] )
+{
+    // Start up SDL and create window of width=800, height = 600
+    initRenderer(800, 600); 
+
+    // Create objects<b>
+    createBackground(); 
+    createShip();   
+    createAliens();
+    </b>...
+<hr><u>background.h</u>
+...
+<b>void createBackground();</b>
+...
+<hr><u>background.c</u>
+...
+void createBackground()
+{
+    background.gfxObj = createGfxObject(  "../background.jpg" );
+    background.gfxObj.outputWidth  = 800;
+    background.gfxObj.outputHeight = 600; 
+    background.pos.x = 400.0f;
+    background.pos.y = 300.0f;
+    background.speed = 0;         // unused
+    background.angle = 0;  
+    //(Note: 1/100 are integer numbers and division becomes equal to 0)
+    background.scale = 1.8f;
+    background.scaleSpeed = 1.0/100.0; 
+    background.update = updateBackground;
+    background.render = render;
+
+   gameObjects[nGameObjects++] = &amp;background;    
+}
+<hr><u>player.h</u>
+...
+void createShip();
+...
+<hr><u>player.c</u>
+#include "player.h"
+#include <math.h>   // för fmod()
+...
+void createShip()
+{
+    ship.gfxObj = createGfxObject(  "../ship.png" );
+    ship.gfxObj.outputWidth  = 200;
+    ship.gfxObj.outputHeight = 200;
+    ship.pos.x = 400.0f;
+    ship.pos.y = 300.0f;
+    ship.speed = 3;
+    //(Note: 90/360, without .0, are integer numbers and division then becomes equal to 0)
+    ship.angle = 0;               // unused
+    ship.angleSpeed = 90.0/360.0; // unused
+    ship.scale = 1.0f;
+    ship.scaleSpeed = 0;          // unused
+    ship.update = updateShip;
+    ship.render = render;   
+    
+    gameObjects[nGameObjects++] = &amp;ship;
+}
+<hr><u>gameobject.h</u>
+#include "renderer.h" // to get screenWidth/screenHeight
+#include "vecmath.h"
+
+typedef struct tGameObject{
+    GfxObject   gfxObj;
+    vec2f       pos;
+    vec2f       moveDir;    // I added this my for aliens-&gt;update()
+    float       speed;
+    double      angle, angleSpeed;
+    float       scale, scaleSpeed;
+
+    // methods:
+    void        (*update) (struct tGameObject* gameobj);
+    void        (*render) (struct tGameObject* gameobj);
+} GameObject;
+
+void render(GameObject* this); // metod
+
+extern GameObject* gameObjects[];
+extern int nGameObjects;
+
+#endif // GAMEOBJECT_H 
+</math.h></div>
+<script>endLosningWide();</script></div></div>
+
+		<div class="contentbody">
+		<div class="uppg">
+		<dl>
+		   <dt style="visibility: hidden;">Uppg. 3</dt>
+		   <dd>
+<ul> <span style="margin-left: -40px;">Fullständiga projekt för lösningen kan du finna du här: </span> 
+<li style="padding-bottom:0;"> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProjekt_Mac_w4_uppg3.zip">SDLProjekt_Mac_w4_uppg3.zip</a></li>		   
+<li> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProject_Windows_w4_uppg3.zip">SDLProject_Windows_w4_uppg3.zip</a></li>
+</ul>
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+	</div> <!-- contentsection codesection -->
+
+
+
+
+	<div class="contentsection codesection">		
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+		<h3> Avstamp inför fortsättningen</h3>
+Övningsuppgifterna fram till och med hit har handlat om att ni skall lära er behärska programspråket C och att era allmänna programmeringskunskaper skall vara tillräckliga för den svårighetsgrad som vi kräver i kursen och även testar på tentan. 
+
+Det som följer nedan är alltså egentligen överkurs för den här kursen (och kommer inte på tentan). En del tas upp i andra fortsättningskurser och en del gör dig helt enkelt redan här och nu till en bättre programmerare av avancerade förlopp, vilket ofta är viktigt för styrsystem, robotprogrammering, inbäddade system,  spelprogrammering, m.m. I synnerhet underlättar det för dig när det gäller att lägga till ytterligare funktionalitet. 
+
+
+<ul style="padding-left:0px;"> De resterande uppgifterna nedan är till för att:
+
+<li style="padding-bottom:0.1em; margin-left: 32px;">hjälpa er att bli bättre programmerare av oberoende och beroende händelseförlopp.
+
+</li><li style="padding-bottom:0.1em; margin-left: 32px;"> hjälpa er med att kvickt bygga upp ett ramverk som typiskt behövs för många sorters större projekt - t ex inför lab 5 där ni implementerar ett eget spel (eller liknande).
+</li></ul>
+
+
+<ul style="padding-left:0px;">  Det är alltså ett antal punkter kvar vi behöver gå igenom innan vi tryggt släpper er för att implementera resten av spelet på egen hand:
+
+<li style="padding-bottom:0.1em; margin-left: 32px;"> Dynamiskt kunna lägga till nya instanser av objekt.</li>
+<li style="padding-bottom:0.1em; margin-left: 32px;">Dynamiskt kunna terminera instanser.</li>
+<li style="padding-bottom:0.1em; margin-left: 32px;">Låta objekten interagera med varandra.</li>
+</ul>
+
+<p>Vi vet att förkunskaperna hos er elever i den här kursen varierar oerhört, från de som programmerat mycket och som löser punkterna ovan själva galant, till de som har mycket lite tidigare erfarenheter. Vi skulle kunna ge er ovanstående punkter som labuppgifter under ett par veckor tillsammans med mycket handledning för många elever. Men just dessa uppgifter är mer typiska för en kurs inom objektorientering och dels vill vi raskt komma framåt. 
+</p>
+<p>
+Den avancerade eleven är mycket välkommen att implementera helt egna lösningar istället för de följande uppgifternas lösningsförslag. Övriga håller vi i handen en stund till.
+</p>		
+	</div>
+	</div>
+
+
+
+
+	<div class="contentsection codesection">		
+		<div class="contentbody" style="text-align: justify;">
+
+		<div class="uppg">
+		<dl>		
+		   <dt>Uppg. 4</dt>
+		   <dd> <b> Animerade spelobjekt </b><br>
+<p style="font-size: 11px; margin-top: 0.5em"> (Övningsmoment: låta ett objekts update()-funktion hantera två oberoende förlopp - här förflyttning och animering.) 
+</p> 
+			<p style="overflow: auto;">
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/heart-fire-animation29.gif" height="100px" style="float: right;">
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/Zen_coin.gif" height="100px" style="float: right;">
+			Nu ska vi unna oss att göra applikationen intressantare genom att stödja animerade objekt.<br>
+<b>Uppgift:</b> Lägg till några nya animerade spelobjekt (t ex dessa två till höger) som även rör sig runt på skärmen på något sätt. </p>
+
+<p>
+<b>För att skapa animerade bilder:</b> Enklast är att skapa en så kallad sprite sheet, d&nbsp;v&nbsp;s en textur (=bild) som innehåller samtliga frames i animeringen, och växla vilken del som skall visas på skärmen under vilken tidpunkt. <br>
+• &nbsp; Här finns en sådan förskapad för hjärtat (10 st frames):<br>
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/fireheart_new.png" width="450px">
+</p>
+<p>
+• &nbsp; Här hittar du en sådan förskapad för myntet (40 st frames):<br>
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/coin-40st.png" width="450px">
+</p>
+<p>
+• &nbsp; Här hittar du en sådan för ett äpple (25 st frames):
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/apples.gif" width="35px"><br>
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/apples25st.png" width="450px">
+</p>
+<p>
+Alternativt kan du finna dina egna gif-animeringar på nätet och konvertera dem till sprite sheets. Här är en sådan online-site som funkar någorlunda men du kan säkert hitta andra:<br>
+&nbsp; <a href="https://sites.google.com/site/stevedunns/convertanimatedgifstospritemaps">https://sites.google.com/site/stevedunns/convertanimatedgifstospritemaps</a>.
+</p>
+
+
+<ul style="padding-left:0px;">
+För att lägga till animering i ditt projekt, välj mellan att:
+
+<li style="padding-bottom:0; margin-left: 16px;"> kika på <a href="https://wiki.libsdl.org/SDL_RenderCopyEx">SDL_RenderCopyEx</a> och funktionen renderGfxObject() i filen renderer.c och lista ut själv hur du gör för att lägga till animeringsstöd.</li>
+ Eller...
+ 
+<li style="padding-bottom:0; margin-left: 16px;"> använd en ny förberedd version av filerna <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/renderer_w4_3.c">renderer.c</a> samt <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/renderer_w4_3.h">renderer.h</a>. Dessa innehåller en ny funktion:<br> 
+&nbsp; <span style="font-family: Monaco, monospace;">void renderGfxSubFrame(GfxObject* gfx, int x, int y, double angle, float scale, SDL_Rect srcRect );</span> som väljer vilken del av bilden som skall ritas ut.  Valet styrs av sista parametern: <span style="font-family: Monaco, monospace;">srcRect</span>. <br>SDL_Rect är definierad som:<br>
+<div class="codeblock">typedef struct {
+   int x, y, w, h;
+} SDL_Rect;
+</div> 
+
+
+<script>startTips("Hjälp för din render()-metod", "margin-top: 0px; width: auto;")</script><div class="tips" style="margin-top: 0px; width: auto;"> <input id="toggleID7" type="checkbox"><label for="toggleID7">Hjälp för din render()-metod</label><div class="expand">
+I render()-metoden för ditt spelobjekt styr du enkelt vilken del av din bild som skall visas på följande sätt. Antag att:<br>
+• &nbsp; this-&gt;numFrames är totalt antal frames i animeringen (10 för hjärtat och 40 för myntet).<br>
+• &nbsp; this-&gt;frame är numret för nuvarande frame som skall visas.
+<div class="codeblock" style="padding-left:0px;">void render(GameObject* this)
+{
+   //Render a sub frame to screen. Here, we know that the 
+   //image is a sprite sheet with the frames outlined next  
+   //to each other in the x-direction. Thus, the  
+   //x-coordinate for the current frame is easy to compute:
+   int w = this-&gt;gfxObj.textureWidth / this-&gt;numFrames;
+   int x = w * (int)(this-&gt;frame); 
+    
+   SDL_Rect srcRect = { x, 0, w, 
+                             this-&gt;gfxObj.textureHeight }; 
+   renderGfxSubFrame(&amp;this-&gt;gfxObj, this-&gt;pos.x, 
+         this-&gt;pos.y, this-&gt;angle, this-&gt;scale, srcRect );
+}
+</div>
+<script>endTips()</script></div></div>
+<script>startTips("Hjälp för din update()-metod", "width: auto;")</script><div class="tips" style="width: auto;"> <input id="toggleID8" type="checkbox"><label for="toggleID8">Hjälp för din update()-metod</label><div class="expand">
+Update() är enkel. Allt du behöver göra är att inkrementera this-&gt;frame varje frame och wrappa runt när värdet når this-&gt;numFrames.
+<script>endTips()</script></div></div>
+</li>
+</ul>
+
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+<!--
+<script>startTipsWide("Hjälp för struktur", "400px;", "margin-top: -10px; width: auto; font-size: 12px;")</script>
+<img alt="" border="0" src="addingAnimation.jpg" width="650"><br>
+<script>endTips();</script>
+<br>
+-->
+
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID9" type="checkbox"><label for="toggleID9" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<div class="codeblock"><u>main.c:</u>
+...
+<b>#include "heart.h"
+#include "coin.h"</b>
+...
+int main( int argc, char* args[] )
+{
+    initRenderer(800, 600); 
+
+    // Create objects
+    createBackground(); 
+    createShip();   
+    createAliens();
+    <b>createHearts();</b>
+    <b>createCoins();</b>
+    ...
+<hr><u>gameobjects.h:</u>
+typedef struct tGameObject{
+    ...<b>
+    // new members for animated images:
+    float       frame;
+    float       frameSpeed;
+    int         numFrames;</b>
+    ...
+} GameObject;
+<hr><u>gameobjects.c</u>
+// OBS - vi valde här att byta ut default-render()-funktionen i
+// gameobject.c och även låta background, player och aliens använda den.
+// Givetvis måste man då även i create()-funktionerna för dessa objekt sätta:
+//   "obj".frame = 0;
+//   "obj".frameSpeed = 1;
+//   "obj".numFrames = 1;
+
+void render(GameObject* this)
+{
+    // Render a sub frame to screen
+    // Here, we know that the heart image is a sprite sheet with 10 frames
+    // simply outlined next to each other in the x-direction.
+    // Thus, the x-coordinate for the current frame is easy to compute:
+    int w = this-&gt;gfxObj.textureWidth / this-&gt;numFrames;
+    int x = w * (int)(this-&gt;frame);
+
+    SDL_Rect srcRect = { x, 0, w, this-&gt;gfxObj.textureHeight }; // select the sub image
+    
+    renderGfxSubFrame(&amp;this-&gt;gfxObj, this-&gt;pos.x, this-&gt;pos.y, this-&gt;angle,
+                       this-&gt;scale, srcRect );
+}
+<hr><u>heart.h</u>
+#ifndef HEART_H
+#define HEART_H
+
+void createHearts();
+
+#endif // HEART_H
+<hr><u>heart.c</u>
+#include "heart.h"
+#include "gameobject.h"
+#include <math.h>   // för fmod()
+
+GameObject heart[100];
+
+static void update(GameObject* this)
+{
+    // update which frame in texture to show
+    this-&gt;frame = fmod( (this-&gt;frame+this-&gt;frameSpeed), this-&gt;numFrames );   
+    
+    // update position
+    this-&gt;pos.x += ...
+}
+
+static void init(GameObject* pObj, GfxObject* pGfx, vec2f pos, float startFrame)
+{
+    pObj-&gt;gfxObj = *pGfx;
+    pObj-&gt;gfxObj.outputWidth  = 100;
+    pObj-&gt;gfxObj.outputHeight = 100;
+    pObj-&gt;pos = pos;
+    pObj-&gt;moveDir = (vec2f){0,0};  // unused
+    pObj-&gt;speed = 0;
+    pObj-&gt;angle = 0;               // unused
+    pObj-&gt;angleSpeed = 0;          // unused
+    pObj-&gt;scale = 1.0f;
+    pObj-&gt;scaleSpeed = 0;          // unused
+    pObj-&gt;update = update;         // our own update in this file
+    pObj-&gt;render = render;         // From gameobjects.h
+    pObj-&gt;frame = startFrame;
+    pObj-&gt;frameSpeed = 0.5f;
+    pObj-&gt;numFrames = 10;
+}
+
+void createHearts()
+{
+    static GfxObject gfx;
+    static bool bFirstTime = true;
+    
+    // It is unnecesary to load the heart image for every instance. Just do it once:
+    if(bFirstTime)
+    {
+        bFirstTime = false;
+        // Create a GfxObject for the heart image
+        gfx = createGfxObject(  "../fireheart_new.png" );
+    }
+        
+    init(&amp;heart[0], &amp;gfx, (vec2f){100, 100}, 0);
+    init(&amp;heart[1], &amp;gfx, (vec2f){200, 100}, 3);
+    init(&amp;heart[2], &amp;gfx, (vec2f){300, 100}, 6);
+    gameObjects[nGameObjects++] = &amp;heart[0];
+    gameObjects[nGameObjects++] = &amp;heart[1];
+    gameObjects[nGameObjects++] = &amp;heart[2];
+}</math.h></div>
+<script>endLosningWide();</script></div></div>
+
+
+		<div class="contentbody" style="text-align: justify;">
+		<div class="uppg">
+		<dl><dt style="visibility: hidden;">hehheh</dt>
+		  <dd>
+<ul> <span style="margin-left: -40px;">Fullständiga projekt för lösningen kan du finna du här: </span> 
+<li style="padding-bottom:0;"> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProjekt_Mac_w4_uppg4.zip">SDLProjekt_Mac_w4_uppg4.zip</a></li>		   
+<li> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProject_Windows_w4_uppg4.zip">SDLProject_Windows_w4_uppg4.zip</a></li>
+</ul>
+
+			<video width="400" autoplay="" loop="">
+			  <source src="animatedobjects.m4v" type="video/mp4">
+			  Your browser does not support HTML5 video.
+			</video>
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+
+	</div>
+
+
+	<div class="contentsection codesection">		
+
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+<h3>Att plocka bort instanser från listan av aktiva spelobjekt</h3>
+
+<p> Vi vill också kunna terminera aktiva spelobjekt och ta bort dem från vår lista <span style="font-family: Monaco, monospace;">gameObjects[]</span> som håller våra aktiva instanser.
+</p>
+<p><b>Att ta bort ett aktivt spelobjekt:</b> Vi kan låta borttagning av en instans från arrayen  <span style="font-family: Monaco, monospace;">gameObjects[]</span> styras av objektets update()-metod. 
+När vi i realtidsloopen i main() loopar över alla aktiva instanser i <span style="font-family: Monaco, monospace;">gameObjects[]</span> kan vi låta update()-metoderna returnera false om de skall tas bort ur <span style="font-family: Monaco, monospace;">gameObjects[]</span> och true om de skall finnas kvar. På så sätt kan anropande loopen ansvara för borttagningen. 
+</p>
+<p>Det finns många andra sätt som man kan lösa problemet. Vi skulle kunna låta update()-metoden själv plocka bort sig ur <span style="font-family: Monaco, monospace;">gameObjects[]</span>. Update()-metoden känner inte till sitt index i <span style="font-family: Monaco, monospace;">gameObjects[]</span>, vilket behövs för att ta bort rätt element. Men vi hade kunnat låta update()-metoden loopa igenom listan tills dess att det hittar elementet som pekar på samma adress som aktuell instans som skall tas bort. För hundratals eller tusentals instanser riskerar detta dock att ta signifikant lång tid om många spelobjekt skall ta bort sig samtidigt. Vår valda lösning tar nästan ingen tid oberoende av hur många instanser som skall tas bort.  
+</p>
+
+		<div class="uppg">
+		<dl><dt>Uppg. 5</dt>
+		  <dd> Gör så att update()-funktionerna för dina nya skapade spelobjekt (dvs ej ship eller background) efter ett tag avslutar instansen genom att returnera false. Låt den anropande loopen i main()-funktionen ansvara för att spelobjektet tas bort ur <span style="font-family: Monaco, monospace;">gameObjects[]</span>. 
+
+<p style="font-size: 11px; margin-top: 0.5em"> (Övningsmoment: programmering, pekare, medlemmar, metoder, svårighetsgrad: typisk deluppgift eller lättare uppgift på tenta.) 
+</p> 
+<script>startTips("Tips -  för att avgöra hur länge spelobjektet varit aktivt", "width: auto;")</script><div class="tips" style="width: auto;"> <input id="toggleID10" type="checkbox"><label for="toggleID10">Tips -  för att avgöra hur länge spelobjektet varit aktivt</label><div class="expand">
+<p>
+Du kan införa structmedlemmarna <span style="font-family: Monaco, monospace;"> int age;</span> och <span style="font-family: Monaco, monospace;"> int lifeTime;</span>  i struct GameObjects, där age beskriver hur många frames objektet varit aktivt och lifeTime beskriver efter hur många frames det skall plockas bort. Du räknar räknar upp <span style="font-family: Monaco, monospace;">age</span> varje frame i update()-metoden. När <span style="font-family: Monaco, monospace;">age == lifeTime</span> låter du update() returnera false (annars true).
+</p>
+<script>endTips();</script></div></div>
+
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID11" type="checkbox"><label for="toggleID11" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<div class="codeblock"><u>gameobjects.h:</u> 
+typedef struct tGameObject{
+    ...
+    <b>int age;</b>
+    <b>int lifeTime;</b>
+    ...
+    // methods:
+    <b>bool</b> (*update) (struct tGameObject* gameobj);
+    ...
+} GameObject;
+
+<u>aliens.c / coin.c / heart.c:</u> 
+static bool update(GameObject* this)
+{
+    ...
+    <b>return (this-&gt;age++ &lt; this-&gt;lifeTime);</b>
+}
+I create-funktionerna:
+    ...
+    pObj-&gt;age = 0;
+    pObj-&gt;lifeTime = 6*60; // ~6 seconds
+    ...
+
+<u>player.c och background.c</u>
+<b>bool</b> update...(...)
+{
+   ...
+   <b>return true; </b>
+}
+
+<u>main.c</u> i realtidsloopen där vi anropar update()-metoderna:
+...
+// Update our object(s)
+<b>int j=0;</b>
+for(int i=0; i &lt; nGameObjects; i++) {
+    <b>if( gameObjects[i]-&gt;update(gameObjects[i]) )
+        gameObjects[j++] = gameObjects[i];</b> // lägg tillbaks objektet i arrayen
+}
+<b>nGameObjects = j;</b> // uppdaterar arrayens storlek
+...
+</div>
+<script>endLosningWide();</script></div></div> 
+
+	</div> <!-- contentsecdtion codesection -->
+
+
+
+
+
+	<div class="contentsection codesection">		
+
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+<h3> Att skapa en datastruktur för att initiera händelser vid givna tidpunkter</h3>
+		<div class="uppg">
+		<dl><dt>Uppg. 6</dt>
+		  <dd> 
+			Här kommer vi att visa ett (av många) exempel på hur du kan skapa en datastruktur som styr när händelser skall starta. Detta är också ytterligare en övning på att använda structs med funktionspekare. 
+<!-- Känner du att du redan har full koll på hur du kan starta händelser när du vill så är du välkommen att bara läsa igenom uppgiften och gå vidare med nästa. Men vi tror att exemplet kan vara matnyttigt för de flesta och hjälpa er inför sista labuppgiften där ni gör ett eget lite större program (t ex ett spel). <br>
+-->
+
+<p style="margin-bottom: 0em;"> <b> Uppgift:</b> </p>
+Olika händelser kan lämpligen initieras med hjälp av olika funktioner. Man kan enkelt kontrollera när dessa olika funktioner skall anropas genom att ha en lista av par av {tidpunkt, funktionspekare}. I realtidsloopen kollar man om det är dags att anropa nästa händelse i listan, och isåfall gör detta och avancerar listiteratorn till nästa element, osv. T ex:
+<div class="codeblock">{  ...
+   { time, createHearts },
+   { time, createCoins  },
+   { time, createAliens },
+   { time, createHearst },
+   ...
+} // en lista av par {tidpunkt, funktion}</div>
+
+<p style="margin-bottom: 0em;">Implementera detta. Testa att det fungerar för några spelobjekt vid ett antal givna tider. Givetvis är det lämpligt att du väljer starttiderna så att objekten hinner självterminera innan de startas på nytt. </p>
+<ol>
+<script>startTips("Hjälp med datastrukturen")</script><div class="tips" style=""> <input id="toggleID12" type="checkbox"><label for="toggleID12">Hjälp med datastrukturen</label><div class="expand">
+<p style="margin-bottom: 0.5em;"> Vi har ännu inte använt klockan men du kan lika gärna använda en variabel frameID (eller loopIter) som du inkrementerar varje frame och jämför mot.</p>
+Listan kan vi enklast implementera som en array av en struct {int time, "funtionspekare"}. För enkelhetens skull är det lämpligt att alla funktionspekare är av samma typ, t ex void (*function) (void), vilket är samma typ som dina create...()-funktioner.<p></p> 
+<script>endTips()</script></div></div>
+
+
+<script>startTips("Lösningsförslag för datastrukturen")</script><div class="tips" style=""> <input id="toggleID13" type="checkbox"><label for="toggleID13">Lösningsförslag för datastrukturen</label><div class="expand">
+T ex:
+<div class="codeblock" style="width: auto;">typedef struct {
+    int time;
+    void (*function) (void);
+} GameEvent;
+
+GameEvent gameEvents[] = {
+    { 60, createHearts },
+    { 120, createCoins }
+};
+int nextEvent = 0;
+// Låt t ex kompilatorn beräkna arrayens längd:
+int nGameEvents = sizeof(gameEvents) / sizeof(GameEvent);
+</div>
+<script>endTips()</script></div></div>
+
+
+<script>startTips("Hjälp med att hantera händelserna")</script><div class="tips" style=""> <input id="toggleID14" type="checkbox"><label for="toggleID14">Hjälp med att hantera händelserna</label><div class="expand">
+<p>Inuti realtidsloopen i main()-funktionen räcker det med att lägga till 3-4 rader kod: 
+Checka loopIter mot tidpunkten för nästa element i arrayen. Om det är dags, anropa funktionen och inkrementera nextEvent.<br>
+&nbsp; &nbsp; &nbsp; Om man vill att flera events skall kunna utföras på samma tidpunkt kan du helt enkelt använda en while-loop.
+</p>
+<script>endTips()</script></div></div>
+
+<script>startTips("Lösningsförslag för att hantera händelserna")</script><div class="tips" style=""> <input id="toggleID15" type="checkbox"><label for="toggleID15">Lösningsförslag för att hantera händelserna</label><div class="expand">
+Följande utförs inuti realtidsloopen någonstans innan uppdatering och rendering av alla objekt, t ex direkt efter hanteringen av keyboard-events:
+<div class="codeblock">// Handle start of game events at the specified times
+while(loopIter &gt;= gameEvents[nextEvent].time &amp;&amp; 
+      nextEvent &lt; nGameEvents) {
+    gameEvents[nextEvent].function();
+    nextEvent++;
+} 
+</div>
+<script>endTips()</script></div></div>
+
+</ol>
+
+<!--
+I nästa uppgift skall vi även terminera spelobjekten genom att använda kollisionsdetektering och på något sätt avsluta objekt som kolliderar.
+-->
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID16" type="checkbox"><label for="toggleID16" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<div class="codeblock"><u>main.c:</u> 
+...<b>
+// Definiera en struct GameEvent
+typedef struct {
+    int time;
+    void (*function) (void);
+} GameEvent;
+
+// Skapa en array av events
+GameEvent gameEvents[] = {
+    { 0,    createHearts },
+    { 1*60, createCoins  },
+    { 3*60, createAliens }
+};
+int nextEvent = 0;
+// Låt t ex kompilatorn beräkna arrayens längd:
+int nGameEvents = sizeof(gameEvents) / sizeof(GameEvent);
+</b>...
+int main( int argc, char* args[] )
+{
+    // Start up SDL and create window of width=800, height = 600
+    initRenderer(800, 600); 
+
+    // Create objects
+    createBackground(); 
+    createShip(); 
+    <b>// ta bort anropen createHeart(), createCoins(), createAliens()
+    // för vi använder vår array gameEvents istället</b>
+    ...
+    while(true) // The real-time loop
+    {
+        ...
+	while( SDL_PollEvent( &amp;e ) != 0 )
+        {
+            ...
+        }
+        ...
+        <b>// Handle initiation of game events</b>
+        <b>while(loopIter &gt;= gameEvents[nextEvent].time &amp;&amp; nextEvent &lt; nGameEvents) {
+            gameEvents[nextEvent].function();
+            nextEvent++;</b>
+        <b>} </b>
+        ...
+</div>
+<script>endLosningWide();</script></div></div> 
+
+
+		<div class="contentbody" style="text-align: justify;">
+		<div class="uppg">
+		<dl><dt style="visibility: hidden;">hehheh</dt>
+		  <dd>
+<ul> <span style="margin-left: -40px;">Fullständiga projekt för lösningen kan du finna du här: </span> 
+<li style="padding-bottom:0;"> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProjekt_Mac_w4_uppg6.zip">SDLProjekt_Mac_w4_uppg6.zip</a></li>		   
+<li> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProject_Windows_w4_uppg6.zip">SDLProject_Windows_w4_uppg6.zip</a></li>
+</ul>
+
+			<video width="400" autoplay="" loop="">
+			  <source src="removeObjects.m4v" type="video/mp4">
+			  Your browser does not support HTML5 video.
+			</video>
+<br>
+<p> <b>Kommentar</b>
+Det är vanligt att man vill att händelser ska initieras beroende på var spelaren (eller annat objekt) befinner sig. Det kan man lätt lösa genom att ha en tvådimensionell eller tredimensionell datastruktur som checkas baserat på spelarens position - t ex en 2D- eller 3D-array av funktionspekare, istället för vår 1D-array. 
+
+		  </p></dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+	</div> <!-- contentsection codesection -->
+
+
+
+
+
+	<div class="contentsection codesection">		
+
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+<h3> Dynamisk minnesallokering av objekt utan malloc/new</h3>
+
+			<p>När vi för närvarande anropar våra create...()-funktioner är det hela tiden samma instanser som (åter-)initieras gång på gång. Våra nuvarande create-funktioner skapar t ex tre hjärtan, fyra mynt respektive tre aliens. Om vi anropar create-funktionen för aliens två gånger i rad får vi inte sex aliens, vilket skulle vara praktiskt.  Ofta har man behov av att dynamiskt kunna skapa helt nya instanser, dvs kunna använda dynamisk minnesallokering.
+</p>
+
+Med malloc(), som ju är till för dynamisk minnesallokering, kan man helt enkelt allokera nytt minnesutrymme på heapen för nya objekt och delallokera utrymmet med free() när instanserna terminerar.
+T ex:
+<div class="codeblock">GameObject* pObj = (GameObject*) malloc( sizeof(GameObject) );
+...
+free(pObj);
+</div>
+ Men om vi inte har möjlighet att använda malloc (som för MD407) så får vi utnyttja datasegmentet istället och här följer ett exempel på hur man kan göra.
+
+
+<p><b>Dynamisk allokering</b> Om vi vet ett övre max för antalet instanser som ska kunna existera samtidigt  kan vi enkelt lösa problemet genom att ha en array (allokerad i datasegmentet) med plats för motsvarande antal element, och för varje allokering av en ny instans leta upp ett ledigt element, markera det upptaget och använda dess minnesutrymme. För att hålla reda på vilka element som är lediga respektive upptagna kan vi ha en array av booleans av samma längd för att flagga elementen (true = upptaget, false = ledigt). Vi kan förpacka funktionaliteten i en funktion <span style="font-family: Monaco, monospace;">allocElement() som returnerar en pekare till det lediga minnesutrymmet.</span>
+</p>
+
+		<p> <b>Deallokering</b> löser vi genom att skapa en funktion <span style="font-family: Monaco, monospace;">freeElement(...)</span> som helt enkelt flaggar elementet som ledigt.</p>
+
+Vår egen motsvarighet till att använda malloc() respektive free() blir alltså:
+<div class="codeblock">GameObject* pObj = allocElement();
+...
+freeElement(pObj);
+</div>
+<br>
+
+<!--
+
+	<h4 style="margin-bottom: 10px;"> Vem äger den allokerade instansen och dess minnesutrymme? </h4>
+
+
+		<p><b>Ägare av den allokerade instansen:</b> I vårt fall har vi vår array <span style="font-family: Monaco, monospace;">gameObjects[]</span> som ligger globalt i filen gameobjects.h/.c och som äger instansen genom att hålla den enda pekaren till instansen. </p>
+
+<p><b>Ägare av det allokerade minnesutrymmet:</b> Med vår semi-dynamiska metod är det faktiskt osmidigt att låta <span style="font-family: Monaco, monospace;">gameObjects[]</span> äga även objektets minnesutrymme och därmed ansvara för minnets deallokering. (Med malloc hade vi enkelt kunnat anropa free() med pekaren till objektets minnesutrymme som inparameter.) För oss är det enklare att låta objektet självt ansvara för sin deallokering. Update()-metoden ansvarar just nu för att returnera false om det skall tas bort ur <span style="font-family: Monaco, monospace;">gameObjects[]</span>. Vi låter även update() ansvara för att anropa <span style="font-family: Monaco, monospace;">freeElement(...)</span> för att utföra deallokeringen.   </p>
+
+<script>startTips("Kommentar för den strikta och petiga programmeraren:")</script>
+<p>Programmeringsmässigt vore det snyggt att samtidigt med deallokeringen sätta den motsvarande pekaren i <span style="font-family: Monaco, monospace;">gameObjects[]</span> till noll. Men det är för oss praktiskt osmidigt att göra inifrån update()-metoden, då update() inte känner till sitt objekts index i <span style="font-family: Monaco, monospace;">gameObjects[]</span>. Vi skulle visserligen kunna leta upp indexet men det slösar exekveringstid.<br> 
+&nbsp; &nbsp; &nbsp; Objektorienteringsmässigt är det osnyggt att deallokera minnesutrymmet för instansen medan dess metod <span style="font-family: Monaco, monospace;">update()</span> fortfarande exekverar. I praktiken innebär det dock inga problem så som vi använder programkoden. Vid multitrådning, som kommer i senare kurser, skulle problem kunna inträffa om en annan programtråd hinner allokera och använda samma minnesutrymme (efter att vi frigjort det) och vår update()-metod därefter (innan den returnerar) felaktigen försöker accessa någon av sina medlemmar som kanske hunnit bli överskriven av den andra tråden.
+</p>
+<script>endTips();</script>
+
+-->
+
+<br>
+<h4 style="margin-bottom: 10px;"> Implementation </h4>
+
+
+Låt oss nu implementera alla nödvändiga funktioner för dynamisk minnesallokering utan malloc.  Detta är egentligen en alldeles utmärkt övning för er att implementera själva, men är man ovan kan det ta tid, så om du vill finns här ett färdigt förslag:
+</div>
+<table>
+<tbody><tr><td style="padding: 2px;">
+<b> Dynamisk minnesallokering i datasegmentet</b>
+<div class="codeblock"><u>dynamicalloc.h</u>
+// This file implements semi-dynamic allocations of type GameObjects
+#ifndef DYNAMIC_ALLOC_H
+#define DYNAMIC_ALLOC_H
+#include "gameobject.h"
+
+GameObject* allocElement(); // Allokerar dynamiskt minnesutrymme för ett objekt 
+void freeElement(GameObject* pObj); // Deallokerar minnesutrymmet för ett objekt
+
+#endif // DYNAMIC_ALLOC_H
+<hr><u>dynamicalloc.c</u>
+#include "dynamicalloc.h"
+
+#define FREE 0  // The definitions are only visible in this .c-file
+#define BUSY 1
+
+typedef struct {
+   GameObject* pObjects; // pekare till en stor statisk array
+   bool* pSlots;         // pekare till en array med en bool per element
+   int nElements;        // Antal element i arrayen
+   int currentElement;   // senaste lediga plats + 1 (för att snabba
+                         // upp sökning efter ny ledig plats
+} AllocData;
+
+#define SIZE 1000   // Max antal samtidigt existerande instanser
+static GameObject   objects[SIZE]; 
+static bool         slots[SIZE];
+static AllocData    allocData = {objects, slots, SIZE, 0};
+
+// Allokerar dynamiskt minnesutrymme för en instans
+GameObject* allocElement()
+{
+    // Vi vill att alla slots skall vara initierade till FREE vid uppstart.
+    static bool bFirstTime = true;
+    if(bFirstTime) {
+        bFirstTime = false;
+        for (int i=0; i &lt; SIZE; i++)
+            allocData.pSlots[i] = FREE;
+    }
+	
+    // Sök efter första lediga plats, men max nElements försök
+    for(int i=0; i &lt; allocData.nElements; i++) {
+        int index = allocData.currentElement;
+        allocData.currentElement = (allocData.currentElement + 1) % 
+                                    allocData.nElements; 
+        if(allocData.pSlots[index] == FREE) {
+            allocData.pSlots[index] = BUSY;
+            return &amp;allocData.pObjects[index]; // returnera den lediga platsen
+        }
+    }
+    // Ingen ledig plats hittades
+    return 0;
+}
+
+// Sätter ett index till ledigt
+void freeElement(GameObject* pObj)
+{
+    int index = pObj - &amp;(allocData.pObjects[0]); 
+    if (index &gt;= 0 &amp;&amp; index &lt; allocData.nElements) {
+        if(allocData.pSlots[index] == BUSY) {
+            allocData.pSlots[index] = FREE;
+            return;
+        }
+    }
+    // Hamnar vi här har något gått fel
+}
+</div>
+</td></tr></tbody></table>
+<br>
+
+
+
+	<div class="contentbody" style="width: 530px; text-align: justify;">
+		<div class="uppg">
+		<dl><dt>Uppg. 7</dt>
+		  <dd> 
+		  <ul>
+		  <li>Skapa dynamicalloc.c/.h enligt programkoden ovan. </li>
+
+<li> Modifiera dina Create()-funktioner (createAliens, createCoins, createHearts etc.) så att de allokerar minne dynamiskt med <span style="font-family: Monaco, monospace;">allocElement()</span>. </li>
+
+<li>Modifiera din kod i realtidsloopen i main()-funktionen så att minnet deallokeras med <span style="font-family: Monaco, monospace;">freeElement(...)</span> för de element vars update()-metod  returnerar false.</li>
+
+
+<li> Testa genom att anropa create-funktionerna så tätt i tiden att många instanser existerar samtidigt. Gör detta genom att låta din datastruktur för händelser vid tidpunkter innehålla många täta anrop. T ex något i stil med:
+<div class="codeblock">GameEvent gameEvents[] = {
+    { 0,    createHearts },
+    { 1*60, createCoins  },
+    { 2.00f*60, createAliens },
+    { 2.25f*60, createAliens },
+    { 2.50f*60, createAliens },
+    { 2.75f*60, createAliens },
+    { 4.00f*60, createAliens },
+    { 4.25f*60, createAliens },
+    { 4.50f*60, createAliens },
+    { 4.75f*60, createAliens }
+};
+</div>
+</li></ul>
+
+
+<script>startTips("Detaljerad hjälp med användandet av dynamiska minnesallokeringen", "width: auto;");</script><div class="tips" style="width: auto;"> <input id="toggleID17" type="checkbox"><label for="toggleID17">Detaljerad hjälp med användandet av dynamiska minnesallokeringen</label><div class="expand">
+
+		<b>I create...()-funktionerna:</b> För att dynamiskt allokera minne för en ny instans av ett objekt anropar du:<br>
+<div class="codeblock">    GameObject* pObj = allocElement();
+    if (pObj == 0) // Testa att det gick att allokera.
+        return;    // Annars, avbryt create-funktionen.
+    // initiera instansen 
+    ...
+</div>
+<br>
+		<b>I main()-funktionen:</b> i realtidsloopen där vi anropar alla update()-metoder behöver vi deallokera element som meddelar att de skall tas bort, dvs som returnerar false. Dvs:
+<div class="codeblock">// Update our object(s)
+int j=0;
+for(int i=0; i &lt; nGameObjects; i++) {
+    if( gameObjects[i]-&gt;update(gameObjects[i]) ) {
+        // lägg tillbaks objektet i arrayen
+        gameObjects[j++] = gameObjects[i]; 
+    }
+    <b>else {
+        // deallokera elementet
+        freeElement(gameObjects[i]);</b>
+    <b>}</b>
+}
+</div>
+
+<script>endTips();</script></div></div>
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID18" type="checkbox"><label for="toggleID18" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<div class="codeblock"><u>aliens.c</u>
+...
+<b>#include "dynamicalloc.h"
+// static GameObject aliens[3]; // Ta bort den gamla statiska allokeringen </b>
+
+void createAliens()
+{
+    static GfxObject gfx;
+    static bool bFirstTime = true;
+    
+    // It is unnecesary to load the image for every instance. Just do it once:
+    if(bFirstTime)
+    {
+        bFirstTime = false;
+        gfx = createGfxObject(  "../alienship.png" );
+    }
+
+    for (int i=0; i&lt;3; i++)
+    {
+        <b>// Allokera och initiera en instans
+        GameObject* pObj = allocElement(); // allokera dynamiskt
+        if (pObj == 0)
+            return;</b>
+        init(<b>pObj</b>, &amp;gfx, 100, 100, (vec2f){100, -50}, (vec2f){0.33*(i+1), 1}, 5.0f);
+        gameObjects[nGameObjects++] = <b>pObj</b>;
+    }
+}
+</div>
+<script>endLosningWide();</script></div></div> 
+
+		<div class="contentbody">
+		<div class="uppg">
+		<dl>
+		   <dt style="visibility: hidden;">Uppg. 3</dt>
+		   <dd>
+<ul> <span style="margin-left: -40px;">Fullständiga projekt för lösningen kan du finna du här: </span> 
+<li style="padding-bottom:0;"> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProjekt_Mac_w4_uppg7.zip">SDLProjekt_Mac_w4_uppg7.zip</a></li>		   
+<li> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProject_Windows_w4_uppg7.zip">SDLProject_Windows_w4_uppg7.zip</a></li>
+</ul>
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+	</div> <!-- contentsection codesection -->
+
+
+
+
+
+	<div class="contentsection codesection">		
+
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+<h3> Objekt och förlopp med sinsemellan interaktion och beroenden </h3>
+
+
+<p> Engelskans ord "task" betyder <b>uppgift</b> och syftar inom datavetenskap ofta på <a href="https://sv.wikipedia.org/wiki/Process_(datorteknik)">process</a> eller <a href="https://sv.wikipedia.org/wiki/Tr%C3%A5d_(datavetenskap)">tråd</a>. Bredden av ordets betydelse är svåröversatt till svenska så därför används begreppet nedan. I vårt sammanhang  
+<!-- "översätts det kanske bäst med programflödet av en specifik uppgift" eller "progamflödet för ett specifikt objekt". -->
+syftar uppgift (task) här på styrningen av händelseförloppet för ett objekt. 
+ Först kommer vi sammanfatta oberoende tasks och därefter gå in på hur man kan lösa beroenden.
+
+</p>
+ 
+
+		<h4> Oberoende tasks </h4>
+
+<p>Vad vi har implementerat hittills är egentligen en form av multitasking, där en realtidsloop exekverar programkod för flera oberoende tasks i tur och ordning (skeppet, bakgrunden och övriga spelobjekt). Detta är mycket likt så kallad <i>non-preemptive scheduling</i> för ett operativsystem. </p>
+
+<p><b>Non-preemptive scheduling</b> hos ett operativsystem innebär att varje program exekverar tills dess att de själva släpper tillbaks kontrollen till operativsystemet (kanske efter några millisekunder), som därefter exekverar nästa program en liten stund o s v. I vårt fall innebär liknelsen att realtidsloopen exekverar våra objekts update()- och render()-metoder var och en för sig i tur och ordning, oberoende av varandra och för en frame i taget. Varje enskilt objekt skulle kunna ses som ett godtyckligt enskilt program och metodanropet till update() kan liknas vid att dess programkod exekveras en iteration. </p>
+
+<p><b>Preemptive scheduling</b> är motsatsen, dvs att operativsystemet självt avbryter programmen, så att inget program tillåts fullständigt blockera exekverandet av andra program ifall det inte släpper tillbaks kontrollen tillräckligt snabbt. Preemptive scheduling är en stor fördel. Dock finns det tillfällen när man inte vill avbryta ett program, t ex vid timing för kommunikation mot portar. Därav att man ofta kan ha olika prioriteter för kod som exekveras via interrupts. </p>
+
+<p> Moderna operativsystem använder preemptive scheduling. Preemptive scheduling bygger på interrupts och i labbarna kommer ni att få experimentera med interrupts. </p>
+
+<br>
+		<h4> Beroende tasks </h4>
+
+<p><span style="font-size: 13px;"><b>Förlopp med sinsemellan beroenden </b></span> <br>Du börjar nu få kläm på att hantera flera oberoende förlopp (tasks). I dessa hemuppgifter skall vi nu fortsätta med <b>beroende</b> förlopp, dvs sådana som på något sätt <b>interagerar</b> med varandra. Båda fallen är ofta viktiga i många olika sammanhang, som t ex robotprogrammering och styrsystem (många motorer skall kontrolleras samtidigt och olika sensorer skall läsas av och initiera förlopp samt kontinuerligt styra andra). 
+</p>
+
+<p>
+Det finns mycket att säga om hur man kan hantera interaktion och beroenden mellan objekt och deras förlopp. Objektorienterad programmering har utvecklats kontinuerligt sedan 50-talet och komponentbaserad  programmering sedan 1968. Vi ger här exempel på hur beroenden kan implementeras (det finns ett otal varianter).
+</p>
+
+<p> <span style="font-size: 13px;"><b>Objektorientering</b></span><br> <b>Objektorientering löser ofta beroenden</b> genom att objekten kommunicerar direkt med varandra sinsemellan. Kommunikation mellan instanser sker typiskt genom att objekten anropar metoder hos varandra. Om t ex vårt skepp kolliderar med ett mynt kan objektet för skeppet anropa en metod <span style="font-family: Monaco, monospace;">collect()</span> hos myntet som talar om för myntobjektet att det skall terminera. Vidare kan t ex objektet för skeppet anropa myntets metod <span style="font-family: Monaco, monospace;">getPoints()</span> för att få reda på hur mycket skeppets score ökar. Vem som bör anropa vem beror på programmerarens designval och det är ibland inte uppenbart vilket val som är lämpligast. T ex skulle objektet för myntet istället kunna meddela objektet för skeppet att de har kolliderat. Valet är ditt.
+</p>
+
+
+
+<p><b><span style="font-size: 13px;">Component-based programming</span></b><br> 
+Component-based programming är ett designmönster som vi inte har pratat om hittills och fortfarande sparsmakat lärs ut på universitet. 
+
+Inom komponentbaserad programmering till skillnad från <a href="https://en.wikipedia.org/wiki/Object-oriented_programming">objektorientering</a> grupperar man hellre sin programkod baserad på funktionalitet än objekttillhörighet. För den variant av komponentbaserad programmering som vi här ska kika på löses ofta <b>beroenden</b> med globala funktioner. Men låt oss först beskriva vad component-based programming är.
+</p>
+
+<p> Component-based programming har ökat i popularitet senaste åren (särskilt inom spelprogrammering) som ett svar på att objektorientering inte passar väl för alla problemtyper. Inom objektorientering representerar man olika typer av objekt med olika klasser. Klasser kan ärva andra klasser och därmed dess typ (dvs i någon mening dess egenskaper). Men i spel är det inte ovanligt att instanser av objekt emellanåt fundamentalt skall ändra egenskaper. Ett spelobjekt dör och kan inte längre styra. Ett spelobjekt får en power-up och kan inte längre bli skadat eller får nya kraftfulla egenskaper. Ett spelobjekt är stillastående och ofarligt och förvandlas av någon anledning till ett rörligt monster. I ett styrsystem för robot/bil skall plötsligt ljudet från radion slås av, utritning på instrumentpanelen slås av för vissa element men slås på för andra. Med klasser är det inte enkelt och smidigt att låta en instans av ett objekt sluta ärva från en klass (för att bli av med dess egenskaper) och börja ärva av en annan klass (för att få dess egenskaper), och antal kombinationer av klasser med olika arv kan snabbt bli ohanterligt. Det är inte omöjligt (och ofta inte ens svårt) att lösa problemet med objektorientering, men grundtanken med klasser och arv är ett verktyg som här ofta passar mindre väl genom att komplicera istället för att förenkla problemet. 
+</p>
+
+<p> Istället delar komponentbaserad programmering upp objekts egenskaper (läs funktionalitet) i separata globala komponenter. Objekt inkluderar därefter de komponenter som de har nytta av för att representera sin sammansatta funktionalitet.
+</p>
+
+<p>
+Komponentbaserad programmering finns på olika abstraktionsnivåer och under lite olika namn, som t ex även: <a href="http://link.springer.com/chapter/10.1007/3-540-46589-8_10#page-2">Component-Oriented Programming</a> samt <a href="https://en.wikipedia.org/wiki/Component-based_software_engineering#Software_component">Component-based software engineering</a>. 
+
+Här ska vi prata om komponentbaserad programmering så som det ofta används inom spelprogrammering, dvs när det appliceras som designmönster inom ett och samma projekt och huvudsakligen för endast en applikation, <a href="https://www.raywenderlich.com/24878/introduction-to-component-based-architecture-in-games">vilket för spel kanske bäst beskrivs av den här informella sidan</a>. Motsatsen är t ex MicroSofts COM-objekt och ActiveX-komponenter eller portabla komponenter inom t ex webprogrammering, där komponenterna är avsedda att vara just portabla och kunna användas för många olika program och av många olika utvecklare. 
+</p>
+
+
+<p> Den <b>kanske allra enklaste formen</b> av komponentbaserad programmering bygger 
+på att varje egenskap, dvs komponent, som finns motsvaras av en boolesk flagga hos objektet och kan slås på eller av. Dessutom tillkommer ofta parametrar, dvs variabler, för respektive egenskap. Varje objekt innehåller en uppsättning av alla flaggor och tillhörande variabler. Av praktiska skäl implementeras flaggorna för egenskaperna ofta som bitar i en variabel som t ex heter properties (eller flera properties-variabler om bitarna inte räcker till). Då kan egenskaper enkelt ändras hos enskilda instanser genom att bara slå på eller av  bitar samt modifiera parametrarna. </p>
+
+<p> En bland många populära lösningar är att låta varje typ av objekt representeras av en och samma klass, just på grund av sin enkelhet - precis som vi har gjort med struct GameObject. Dvs klassen är ett superset av samtliga medlemmar som finns bland alla olika slags objekt.</p>
+
+<p> Logiken som agerar på egenskaperna implementeras i globala funktioner - till skillnad från i metoder per objekt. Varje funktion loopar typiskt igenom samtliga instanser och utför logiken för de instanser som har motsvarande flagga satt. T ex skulle realtidsloopen i main() kunna anropa en funktion renderAllGameObjects() som ligger i gameobjects.c, som i sin tur loopar igenom varje spelobjekt i arrayen gameObjects[] och anropar dess render()-metod om dess flagga "visible" är satt.
+</p>
+
+<p>
+<b> Beroenden</b> mellan objekt som består av olika komponenter löses följaktligen typiskt genom att globala funktioner ansvarar för hanterandet. En specifik global funktion, t ex för kollisionsdetektering, känner till åtminstone det som behövs hos respektive inblandat spelobjekt och påverkar spelobjekten direkt. 
+</p>
+
+<p>
+Både objektorienterad programmering och component-based programming har sina för- och nackdelar och det är fördelaktigt att känna till båda. Om man använder component-based programming är det vanligt att fortfarande utnyttja en stor del objektorientering. Ju fler slags objekt man har som bygger på många olika kombinationer av funktionalitet som ofta är gemensam, desto mer aktuellt blir det att använda komponentbaserad programmering - särskilt om objekten skall kunna ändra egenskaper. Här följer en generalisering.
+</p>
+
+<table>
+<thead>
+<tr>
+<th></th> <th>ingen eller lite gemensam funktionalitet</th> <th>mycket gemensam funktionalitet</th>
+</tr>
+</thead><thead>
+
+</thead><tbody>
+<tr>
+<th>få slags objekt</th> 
+<td style="background: white">objektorientering</td> 
+<td style="background: linear-gradient(to right bottom, #ffffff 0%,#ffffff 49.9%,#f3f3f3 51.1%,#f3f3f3 100%);">objektorientering med arv / &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (komponentbaserad programmering)</td>
+</tr>
+
+<tr>
+<th>många slags objekt</th> <td style="background: linear-gradient(to right bottom, #ffffff 0%,#ffffff 49.9%,#f3f3f3 51.1%,#f3f3f3 100%);">objektorientering</td> 
+<td style="background: #f3f3f3;">komponentbaserad programmering</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Parametrarna för respektive komponent implementeras som sagt med variabler. Graden av generalitet och flexibilitet för komponentens funktionalitet styr valet av parametrarnas typer. Funktionspekare ger en användare av komponenten maximal flexibilitet. Exempel: 
+</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Fåtal alternativ</th> 
+<th style="text-align: center;">Större definitionsmängd</th> 
+<th style="text-align: center;">Fullständig flexibilitet</th>
+</tr>
+</thead><thead>
+
+</thead><tbody>
+<tr> 
+<td>bool/enum</td> 
+<td>int / float / double / array / sträng / struct / klass ...</td>
+<td>virtuell metod / funktionspekare</td>
+</tr>
+</tbody>
+</table>
+
+<!--
+<p> Parametrarna för respektive komponent implementeras som sagt med variabler. Graden av generalitet och flexibilitet för komponentens funktionalitet påverkar komponentens parametrar. Funktionspekare ger en användare av komponenten maximal flexibilitet.
+</p>
+<table>
+<tr>
+<th>ingen variation</th>
+<th>lite variation</th>
+<th>total variationsmöjlighet</th>
+</tr>
+<tr>
+<td>fixed funktionalitet</td>
+<td>fixed funktionalitet med parametrar</td>
+<td>funktionspekare (individuella metoder)</td>
+</tr>
+</table>
+-->
+
+<p>I nästa uppgift ska vi låta skeppet kunna plocka våra mynt och hjärtan och kasta eller skjuta äpplen på aliens, varpå de träffade objekten avslutas. För träffade aliens, eller om skeppet träffas av aliens, skall avslutningen ske med en explosionsanimering. För sakens skull och för att det passar bra ska vi prova på att implementera kollisionsdetekteringslogiken med en mycket enkel variant inspirerad av komponentbaserad programmering. Komponenten som vi inför kopplar vi till en flagga COLL_CHECK som är 1 för spelobjekt som ska kollisionstestas. Logiken för vad som skall hända vid kollisioner baserar vi på spelobjektens egenskaper som också är representerade som komponenter (PLAYER, ENEMY, COIN, POWER_UP etc.). För att ha fullständig flexibilitet för explosionsanimeringarna använder vi funktionspekare för att välja explosionsanimering samt kunna växla till tillhörande update()-metod. 
+
+Observera att om man skulle vilja använda komponentbaserad programmering fullt ut behöver man även ändra alla andra objektspecifika metoder (i vårt fall update() och render()) till generella globala metoder.
+</p>
+
+
+<p> <span style="font-size: 13px;"><b>Objekt som skapar eller terminerar andra objekt </b></span><br>
+Det är vanligt att objekt har tillåtelse att skapa andra objekt (i vårt fall när player-objektet skapar äpplen) och objekt kan få meddelande om när de ska avslutas. Att låta ett objekt skapa andra typer av objekt är ofta oproblematiskt. Ett objekt kan skapa ett nytt objekt helt själv eller anropa en <span style="font-family: Monaco, monospace;">create()</span>-funktion som implementeras av det skapade objektets .c-fil. 
+</p>
+<p> Inom objektorientering använder man normalt en klasspecifik <i>konstruktor</i>, dvs en form av Create-funktion, som automatiskt anropas när objekt allokeras (på stacken eller heapen) för att initiera en instans, samt en klasspecifik <i>destruktor</i> som anropas när instansen deallokeras (från stack eller heap).
+</p>
+<p> Men... <b>det är ofta lämpligt att objekten själva ansvarar för att faktiskt terminera</b> samt exakt när de skall deallokeras. I vårt fall kanske ett träffat eller plockat objekt gör en speciell avslutningsanimering (t ex explosion eller initierar uppspelning av ett ljud). I ett inbyggt system kanske ett objekt som skall avslutas behöver göra några slutberäkningar, spara ner information och frigöra resurser vilket kan involvera ytterligare kommunikation med andra objekt. Principen är densamma. 
+</p>
+<p> I övningsuppgifterna ovan låter vi instansers update()-metod returnera false när objekten skall deallokeras (dvs tas bort), vilket duger bra för oss här och nu.   
+</p>
+
+<h4>Kollisionsdetektering</h4>
+<p>
+För kollisionsdetektering skapar man typiskt en global funktion CollisionDetection(...) som loopar igenom alla par av objekt och kollisionsdetekterar dem mot varandra.
+</p><p>
+<b>I en objektorienterad lösning</b> gör man t  ex så att man för varje par av objektinstanser, (A,B), som ska kollisionstestas anropar en metod hos objekt A som tar B som inparameter och vice versa. Dvs:
+</p><div class="codeblock">// För varje par A, B som skall kollisionstestas
+    pA-&gt;collisionDetect(pB); 
+    pB-&gt;collisionDetect(pA);
+</div>
+
+Om t ex A är ett spelarskott och B en fiende kan <nobr>pA-&gt;</nobr>collisionDetect(pB) anropa <nobr>pB-&gt;</nobr>getPoints(), addera rätt antal poäng till spelaren och terminera A. <nobr>pB-&gt;</nobr>collisionDetect(pA) kan kolla att typen för A är ett spelarskott och initiera en avslutande explosionsanimering. <p></p>
+
+<p>Man behöver alltså kunna särskilja vilka typer av objekt som är inblandade i en given kollision (t ex player vs heart, player vs coin) för att kunna initiera rätt typ av skeende. I objektorienterade språk som Java, C++, C# m.fl. ger språket stöd för att avgöra typer i runtime, men i C är det sämre ställt. Istället är två exempel på tillvägagångssätt för att identifiera objekttypernna att antingen ha dem i separata listor eller ha en struktmedlem som talar om objektets typ. T ex:
+</p><div class="codeblock">enum object_type { PLAYER, COIN, ALIEN, HEART, APPLE};
+typedef struct tGameObject{
+    ...
+    object_type type;
+    ...
+} GameObject;
+</div>
+<p></p>
+
+<p> Fördelen med objektorientering är flexibilitet. Nackdelen är att varje objekt måste ha en metod collisionDetect(), vilken sannolikt är mer eller mindre identisk för många snarlika typer av objekt. (Man kan visserligen försöka använda arv eller funktionspekare som pekar ut lämplig funktion av ett antal olika varianter för att minska mängden implementation.)  
+</p>
+<p> 
+<b>Filosofin med komponentbaserad programmering</b> är istället att bryta loss egenskaperna eller funktionaliteter (dvs komponenterna) ifrån objekttyperna och i största mån skapa global logik som agerar utefter de olika egenskaperna istället för vilka datatyper objekten är. Därmed kan man lätt hantera en mängd olika typer av objekt med olika kombinationer av egenskaper utan att behöva lägga till implementation för varje unik kombination.   
+</p>
+<p>
+Nackdelen är att man kan få en eller ett antal stora komplicerade globala funktioner. Men en annan fördel är att gemensam logik är samlad på ett ställe i programkoden, vilket kan vara överskådligare och göra det enklare att införa modifieringar.
+</p>
+<p>
+
+</p>
+Vilka egenskaper man vill indela i kan förstås variera fullständigt. I vårt spel gäller just nu att ett objekt kan vara: player, enemy, player shot, enemy shot (har vi ännu inte lagt till), poänggivande mynt eller powerup. Än så länge har vi inte implementerat några kombinationer, men man kan enkelt tänka sig objekt som både är enemy och powerup, eller mynt och powerup, samtidigt. Datastrukturen blir då t ex något i stil med:
+  
+<div class="codeblock">// properties implemented as bits
+typedef enum { COLL_CHECK=2, VISIBLE = 4,
+              PLAYER=8, ENEMY=16, PLAYER_SHOT=32, ENEMY_SHOT=64,
+              COIN=128, POWER_UP=256 } Props;
+typedef struct tGameObject{
+    ...
+    // Properties for component-based programming style
+    Props       properties;
+    ...
+} GameObject;
+</div>
+
+
+	</div>
+	</div>
+
+
+
+
+
+	<div class="contentsection codesection">		
+
+		<div class="contentbody" style="width: 530px; text-align: justify;">
+
+<h3> Interaktion mellan våra objekt via kollisioner
+</h3>
+
+<p>
+Vi ska nu låta våra objekt interagera med varandra när de kolliderar. 
+I ett realtidsspel utgör kollisionshanteringen inte sällan en mycket central del i spellogiken. Ofta är det i samband med att objekt kolliderar som objekt och förlopp interagerar med och påverkar varandra.
+
+<!-- I <a href="hemuppgifter-forel5.html">fliken för föreläsning 5</a> ska vi noggrannare gå igenom en del teori för förlopp med sinsemellan beroenden med objektorientering respektive komponentbaserad programmering. 
+--> 
+Här ska vi visa ett enkelt men ändå flexibelt sätt att implementera kollisionslogiken.
+</p>
+
+<p> Detta är sista programmeringsuppgiften för hemuppgifterna. <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/hemuppgifter-forel5.html">Hemuppgifter förel. 5</a> presenterar endast hur man skulle kunna gå tillväga för att konvertera vårt projekt till att exekvera på labbdatorn MD407 (vilket kan vara intressant för er inför labb 5). Du kan med fördel läsa igenom det så fort du är färdig med denna uppgift 8.
+</p>
+
+
+		<div class="uppg">
+		<dl>		
+		   <dt>Uppg. 8</dt>
+		   <dd> 
+
+
+<b> Att låta skeppet kunna plocka upp mynt och hjärtan samt kasta/skjuta äpplen på andra objekt</b><br>
+
+			<video width="400" autoplay="" loop="">
+			  <source src="fullgame.m4v" type="video/mp4">
+			  Your browser does not support HTML5 video.
+			</video>
+<br><br> 
+
+</dd>
+<dt>Uppg. 8a</dt>
+<dd> Som en första deluppgift, implementera att skeppet kan kasta/skjuta äpplen. (Vi väntar med kollisionsdetekteringen tills nästa deluppgift.) Du kan implementera det som du vill. Här har du en animering för ett äpple:
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/apples.gif" height="20"><br>
+med färdig png-fil att ladda in i ditt program (högerklicka och ladda ned):<br>
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/apples25st.png" height="20"><br>
+
+<script>startTips("tips", "width: auto;")</script><div class="tips" style="width: auto;"> <input id="toggleID19" type="checkbox"><label for="toggleID19">tips</label><div class="expand">
+<ul>
+<li> I player.c, för skeppets update-funktion, läs av om en skjuta-/kasta-knapp är nedtryckt (t ex SDL_SCANCODE_SPACE). Om knappen är nedtryckt, anropa en funktion createPlayerShot(...), med inparametrar som du väljer, som skapar ett skott (äpple) som rör sig t ex uppåt på skärmen och terminerar när det är utanför skärmen. Du kan implementera createPlayerShot i egna filer shots.h/.c  precis på liknande sätt som våra andra spelobjekt. <br>
+&nbsp; &nbsp; &nbsp; För att inte äpplena skall skapas för tätt inpå varandra (dvs varje frame som knappen är nedtryckt), lägg till en ny medlem <span style="font-family: Monaco, monospace;">delay;</span> till struct <span style="font-family: Monaco, monospace;">GameObject</span> som initieras till t ex 20 när ett äpple avfyrats och inte tillåter skapandet av ett nytt skott förrän räknaren är 0.
+</li>
+
+<li> För att terminera äpplen när de är utanför skärmen kan du i deras gemensamma update()-funktion checka positionen mot fönsterkanterna, vilka du kan avläsa med:
+<div class="codeblock">// Hämta fönsterstorleken:
+int screenWidth, screenHeight; 
+SDL_GetWindowSize(gWindow, &amp;screenWidth, &amp;screenHeight);
+</div>
+</li></ul>
+<script>endTips();</script></div></div>
+</dd>
+
+
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+
+<script>startLosningWide();</script><div class="expandwide" style="margin-top:0;"><input id="toggleID20" type="checkbox"><label for="toggleID20" style="margin-right: 80px;" "="">lösningsförslag</label><div class="expand expandwide">
+<div class="codeblock"><u>gameobject.h</u>
+typedef struct tGameObject{
+    ...
+    // new member for shooting hearts
+    int         delay;
+    ...
+<hr><u>player.c</u>
+bool updateShip(GameObject* this)
+{
+    ...
+    if(this-&gt;delay &gt; 0)
+        this-&gt;delay--;
+    if(state[SDL_SCANCODE_SPACE]) {
+        if(this-&gt;delay == 0) {
+            // Skapa ett skott.
+            // Låt det starta alldeles ovanför skeppet
+            vec2f pos = this-&gt;pos;
+            pos.y -= 0.8f * (this-&gt;gfxObj.outputHeight/2);
+            vec2f dir = {0.0f, -1.0f}; // skottets riktning - här uppåt
+            createPlayerShot1(pos, dir);
+            this-&gt;delay = 20; // vänta minst 20 frames innan nytt skott tillåts.
+        }
+    }
+    ...
+}
+<hr><u>shots.h</u>
+#ifndef SHOTS_H
+#define SHOTS_H
+#include "gameobject.h"
+
+GameObject* createPlayerShot1(vec2f pos, vec2f dir);
+
+#endif // SHOTS_H
+<hr><u>shots.c</u>
+#include "shots.h"
+#include "gameobject.h"
+#include <math.h>   // för fmod()
+#include "dynamicalloc.h"
+
+static bool update(GameObject* this)
+{
+    // update which frame in texture to show
+    this-&gt;frame = fmod( (this-&gt;frame+this-&gt;frameSpeed), this-&gt;numFrames ); 
+    
+    // update positions
+    this-&gt;pos.x += this-&gt;moveDir.x * this-&gt;speed;
+    this-&gt;pos.y += this-&gt;moveDir.y * this-&gt;speed;
+ 
+    // Hämta fönsterstorleken:
+    int screenWidth, screenHeight; 
+    SDL_GetWindowSize(gWindow, &amp;screenWidth, &amp;screenHeight);
+    
+    // Terminera objektet om det är helt utanför fönstret
+    bool bOutside = false;
+    bOutside |= this-&gt;pos.x &lt;= -this-&gt;gfxObj.outputWidth/2;
+    bOutside |= this-&gt;pos.x &gt;= screenWidth + this-&gt;gfxObj.outputWidth/2;
+    bOutside |= this-&gt;pos.y &lt;= -this-&gt;gfxObj.outputHeight/2;
+    bOutside |= this-&gt;pos.y &gt;= screenHeight + this-&gt;gfxObj.outputHeight/2;
+        
+    if(bOutside)
+        return false;  
+    // kolla om dags att terminera 
+    return ( (this-&gt;age++ &lt; this-&gt;lifeTime) &amp;&amp; !bOutside);
+}
+
+
+GameObject* createPlayerShot1(vec2f pos, vec2f dir)
+{
+    static GfxObject gfxApple;
+    static bool bFirstTime = true;    
+    if(bFirstTime)
+    {
+        bFirstTime = false;
+        // Create a GfxObject for the apple image
+        gfxApple = createGfxObject(  "../apples25st.png" );
+    }
+
+    // Allokera och initiera en instans
+    GameObject* pObj = allocElement(); // allokera dynamiskt
+    if (pObj == 0)
+        return 0;
+    pObj-&gt;gfxObj = gfxApple;
+    pObj-&gt;gfxObj.outputWidth  = 50;
+    pObj-&gt;gfxObj.outputHeight = 50;
+    pObj-&gt;pos = pos;
+    pObj-&gt;moveDir = dir;  
+    pObj-&gt;speed = 5;
+    pObj-&gt;angle = 0;               // unused
+    pObj-&gt;angleSpeed = 0;          // unused
+    pObj-&gt;scale = 1.0f;
+    pObj-&gt;scaleSpeed = 0;          // unused
+    pObj-&gt;update = update;         // our own update in this file
+    pObj-&gt;render = render;         // From gameobjects.h
+    pObj-&gt;frame = 0;
+    pObj-&gt;frameSpeed = 1;
+    pObj-&gt;numFrames = 25;
+    pObj-&gt;age = 0;
+    pObj-&gt;lifeTime = 10*60;        // 10 seconds 
+
+    gameObjects[nGameObjects++] = pObj;
+    return pObj;		
+}
+</math.h></div>
+<script>endLosningWide();</script></div></div> 
+
+		<div class="contentbody" style="text-align: justify;">
+		<div class="uppg">
+		<dl>
+
+		<dt style="visibility: hidden;">Uppg. 8a</dt>
+		 <dd>		
+		<span style="font-size: 11px;">(Vill du hämta fullständig projektlösning, använd den för uppg. 8b nedan.)</span><br>
+		 </dd>
+		<br><br>
+
+<dt>Uppg. 8b</dt>
+<dd> 
+
+<b>Kollisionsdetektering</b><br>
+<p> Vi ska låta aliens explodera om de blir träffade av ett äpple. Vi ska låta skeppet explodera om det kolliderar med en alien. Vi skall också låta skeppet kunna plocka hjärtan och mynt.
+</p>
+Typiskt för kollisionsdetektering är att man har en nästlad loop (i två nivåer) som loopar igenom alla spelobjekt som potentiellt kan kollidera och testar var och ett parvis mot varandra:
+<div class="codeblock">    for(int i=0; i &lt; nGameObjects; i++) {
+        GameObject* pA = gameObjects[i];
+        for(int j=0; j &lt; nGameObjects; j++) {
+            GameObject* pB = gameObjects[j];
+            if(collide(pA, pB)) {
+		...
+</div>
+
+<p>
+Vi behöver också kunna särskilja på kollisioner mellan olika slags spelobjekt för att initiera rätt skeenden - här inte nödvändigtvis baserat på deras datatyper (vi använder just nu ändå bara en och samma datatyp GameObjects för alla objekt), utan snarare på vilka sorts spelobjekt det rör sig om. Vi kan specificera alla olika sorter med en enum och ha en variabel i struct GameObjects som talar om vilken sort objektet tillhör. Dock, för att öka generaliteten kan vi representera varje sort med en bitflagga. Då blir det teoretiskt möjligt att låta ett och samma objekt tillhöra mer än en sort (vilket passar komponentbaserad programmering). Vi ska också införa två extra flaggor: en som markerar om objektet skall kollisionsdetekteras överhuvudtaget (COLL_CHECK) samt en flagga (TERMINATING) som vi använder inuti vår globala kollisionsdetekteringsfunktion. 
+</p>
+<p><b>Explosioner:</b> Vi vill initiera explosionsanimeringar om vårt skepp blir träffat av en alien eller om ett äpple träffar en alien. För att enkelt kunna bestämma per instans hur dess explosionsanimering ser ut låter vi struct GameObject innehålla en metod setExplosion() som anropas för att initiera rätt explosion. Då har vi full flexibilitet att både dela implementation mellan olika objekt samt ha unika varianter. Funktionen setExplosions() byter objektets animering och även update()-funktion (eftersom objektet t ex inte längre ska kunna flytta sig). Update()-funktionen spelar explosionsanimeringen en gång och avslutar därefter automatiskt objektet.
+</p>
+<li> Ladda ned den här  explosionsanimeringen och lägg i ditt projekt tillsammans med de övriga animeringarna:<br>
+<img alt="" border="0" src="./Hemuppgifter C-programmering_files/explosion1_10.png" height="20">
+
+</li><li> Lägg till detta till din fil gameobjects.h:
+
+<div class="codeblock"><u>gameobject.h</u>
+// properties implemented as bit booleans
+<b>typedef enum {TERMINATING=1, COLL_CHECK=2, PLAYER=8, 
+              ENEMY=16, PLAYER_SHOT=32, ENEMY_SHOT=64,
+              COIN=128, POWER_UP=256 } Props;</b>
+typedef struct tGameObject{
+    ...
+    <b>Props    properties;</b>
+    ...
+    // methods:
+    <b>void (*setExplosion)(struct tGameObject* gameobj);</b>
+    ...	
+}  GameObject;
+</div>
+Som ni ser lade vi även till sorten ENEMY_SHOT samt POWER_UP, när vi ändå håller på.
+
+<p>
+<b>Att testa spatialt (rumsligt) överlapp mellan objekt:</b> 
+Om man har objekt som kan <b>rotera</b> och är ungefär lika höga som breda är det enklaste att göra ett test som approximerar varje objekt med en cirkel och testar överlapp mellan två cirklar. Så här kan du göra för att beräkna ett objekts cirkelcentrum och radie, där pObj är en pekare till en instans av typen GameObject:
+</p><div class="codeblock" style="padding-left: 3px; margin-left: -8px;">vec2f center = pObj-&gt;pos;
+float radius = sqrt(
+  pObj-&gt;gfxObj.outputHeight*pObj-&gt;gfxObj.outputHeight + 
+  pObj-&gt;gfxObj.outputWidth*pObj-&gt;gfxObj.outputWidth)*0.5f;
+</div>
+För exempel på hur du kan implementera exakt kollisionstest (för objekt som inte är roterade), titta här: <a href="http://lazyfoo.net/tutorials/SDL/28_per-pixel_collision_detection/index.php"> http://lazyfoo.net/tutorials/SDL/index.php </a>.
+<p></p>
+
+
+</li><li> Tanken med denna uppgift är att visa ett sätt hur man lätt kan implementera kollisionshanteringen. Därför följer här hela lösningen. Skapa filerna collision.h/c-filer och inför följande i respektive filer:
+
+		  </li></dd>
+		</dl>
+
+<table style="margin-left: -9px;"><tbody><tr><td style="padding: 0px; margin-left: 0px;">
+<div class="codeblock"><u>aliens.c</u>
+<b>#include "collision.h"</b>
+...
+static void init(...
+    ...
+<b>    pObj-&gt;setExplosion = setExplosion1;
+    pObj-&gt;properties = COLL_CHECK | ENEMY;</b>
+    ...
+<hr><u>coin.c</u>
+static void init(
+    ...
+<b>    pObj-&gt;lifeTime = 5*600000; // so we have time to take it 
+    pObj-&gt;properties = COLL_CHECK | COIN;
+    pObj-&gt;setExplosion = 0;    // no explosion animation </b>
+<hr><u>heart.c</u>
+static void init(...
+    ...
+<b>    pObj-&gt;lifeTime = 6*600000; // so we have time to take it
+    pObj-&gt;properties = COLL_CHECK | POWER_UP;
+    pObj-&gt;setExplosion = 0;    // no explosion animation</b>
+<hr><u>player.c</u>
+<b>#include "collision.h"</b>
+...
+void createShip()
+{
+    ...
+<b>    ship.setExplosion = setExplosion1;
+    ship.properties = COLL_CHECK | PLAYER;</b>
+<hr><u>shots.c</u>
+GameObject* createPlayerShot1(...
+    ...
+<b>    pObj-&gt;properties = COLL_CHECK | PLAYER_SHOT;
+    pObj-&gt;setExplosion = 0;</b>
+<hr><u>main.c</u>
+<b>#include "collision.h"</b>
+...
+// Anropa CollisionDetection() mellan update- och render-looparna:
+        // Update our object(s)
+        ...
+        <b>CollisionDetection(gameObjects, &amp;nGameObjects);</b>
+
+        // Render our object(s) - background objects first, and then forward objects
+        for( ...
+<hr><u>collision.h</u>
+#ifndef COLLISION_H
+#define COLLISION_H
+#include "gameobject.h"
+void CollisionDetection(GameObject* gameObjects[], int *nGameObjects);
+void setExplosion1(GameObject* gameobj);
+void setExplosion2(GameObject* gameobj);
+#endif //COLLISION_H
+<hr><u>collision.c</u>
+#include "collision.h"
+#include "vecmath.h"
+#include "dynamicalloc.h"
+#include "player.h"
+
+static inline float getRadius(GameObject* pObj)
+{
+    float radius = sqrt(
+      pObj-&gt;gfxObj.outputHeight*pObj-&gt;gfxObj.outputHeight + 
+      pObj-&gt;gfxObj.outputWidth*pObj-&gt;gfxObj.outputWidth)*0.25f;
+    return radius;
+}
+
+static inline bool collide(GameObject* pA, GameObject* pB)
+{
+    vec2f centerA = pA-&gt;pos;
+    vec2f centerB = pB-&gt;pos;
+    float dx = (centerA.x - centerB.x);
+    float dy = (centerA.y - centerB.y);
+    float dist = sqrt(dx*dx + dy*dy);
+    return (dist &lt;= getRadius(pA) + getRadius(pB));
+}
+
+static bool update(GameObject* this)
+{
+    // kolla om animeringen är färdig
+    bool bFinished = this-&gt;frame+this-&gt;frameSpeed &gt;= this-&gt;numFrames;
+    
+    // update which frame in texture to show
+    this-&gt;frame = fmod( (this-&gt;frame+this-&gt;frameSpeed), this-&gt;numFrames ); 
+    
+    // Hack to make player resurrect after dying.
+    if( bFinished &amp;&amp; (this-&gt;properties &amp; PLAYER) )
+        createShip();
+    return !bFinished;
+}
+
+void setExplosion1(GameObject* pObj)
+{
+    static GfxObject expl;
+    static bool bFirstTime = true;
+    if(bFirstTime)
+    {
+        bFirstTime = false;
+        // Create a GfxObject for the explosion animation
+        expl = createGfxObject(  "../explosion1_10.png" );
+    }
+    int w = pObj-&gt;gfxObj.outputWidth;
+    int h = pObj-&gt;gfxObj.outputHeight;
+    pObj-&gt;gfxObj = expl;
+    pObj-&gt;gfxObj.outputWidth = w*1.5f;
+    pObj-&gt;gfxObj.outputHeight = h*1.5f;
+    pObj-&gt;frame = 0;
+    pObj-&gt;frameSpeed = 0.3f;
+    pObj-&gt;moveDir = (vec2f){0,0};
+    pObj-&gt;numFrames = 10;
+    pObj-&gt;update = update;
+}
+
+void CollisionDetection(GameObject* gameObjects[], int * outNumGameObjects)
+{
+    int nGameObjects = *outNumGameObjects;
+    for(int i=0; i &lt; nGameObjects; i++)
+    {
+        GameObject* pA = gameObjects[i];
+        
+        if( !(pA-&gt;properties &amp; COLL_CHECK) )
+            continue; // A is not collidable
+        // We want to test: PLAYER and PLAYER_SHOT against the other types
+        if( !(pA-&gt;properties &amp; (PLAYER | PLAYER_SHOT)) )
+            continue;
+        for(int j=0; j &lt; nGameObjects; j++)
+        {
+            GameObject* pB = gameObjects[j];
+            if( !(pB-&gt;properties &amp; COLL_CHECK) )
+                continue; // B is not collidable
+                
+            // Testa A och B mot varandra
+            if(collide(pA, pB)) 
+            {
+                if(pB-&gt;properties &amp; (ENEMY | ENEMY_SHOT) ) {
+                    // Player/playershot can hurt several enemies at once,
+                    // so don't turn off collision detection yet.
+                    pA-&gt;properties |= TERMINATING; // flag object as killed.
+                    pB-&gt;properties |= TERMINATING; // flag other obj as killed
+                    // disable further collision check for the enemy.
+                    pB-&gt;properties &amp;= ~COLL_CHECK;  
+                }
+
+                if( (pA-&gt;properties &amp; PLAYER) &amp;&amp; 
+                    (pB-&gt;properties &amp; (COIN | POWER_UP)) ) {
+                    // Powerup/coin kan bara plockas av en spelare åt gången.
+                    // Därför, slå av dess kollisionsdetektering
+                    pB-&gt;properties &amp;= ~COLL_CHECK; 
+                    pB-&gt;properties |= TERMINATING; // kill coin/powerup
+                    // ... add points or power-up capabilities
+                }
+            }
+        }
+    }
+    
+    // Do something with each of the newly terminating objects.
+    // E.g., initiate termination animation or remove them.
+    int j=0;
+    for(int i=0; i &lt; nGameObjects; i++) 
+    {
+        GameObject* pObj = gameObjects[i];
+        gameObjects[j++] = gameObjects[i]; // lägg tillbaks objektet i arrayen
+               
+        if( pObj-&gt;properties &amp; TERMINATING ) {
+            // clear the terminating and coll_check flags 
+            pObj-&gt;properties &amp;= ~(TERMINATING | COLL_CHECK); 
+            
+            if( pObj-&gt;setExplosion )
+                pObj-&gt;setExplosion(pObj);
+            else {
+                freeElement(pObj);  // deallokera objektet
+                j--; // minska antal objekt
+            }
+        }
+    }
+    *outNumGameObjects = j; // uppdaterar arrayens storlek 
+}
+</div>
+</td></tr></tbody></table>
+
+
+		<dl>		
+
+
+<dt style="visibility: hidden;">hehheh</dt>
+<dd> 
+<li> Kompilera och testa:<br>
+
+<ul> <span style="margin-left: -40px;">Fullständiga projekt för lösningen kan du finna du här: </span> 
+<li style="padding-bottom:0;"> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProjekt_Mac_w4_uppg8.2.zip">SDLProjekt_Mac_w4_uppg8.2.zip</a></li>		   
+<li> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProject_Windows_w4_uppg8.2.zip">SDLProject_Windows_w4_uppg8.2.zip</a></li>
+</ul>
+
+</li></dd>
+
+<dt>Uppg. 8c</dt>
+<dd> 
+
+<b>Lägg till Powerup-funktionalitet</b>
+<p>
+Just nu är våra hjärtan flaggade som powerups. Men inget händer när skeppet plockar dem. Anledningen är att vi ännu inte har lagt till någon motsvarande logik i kollisionshanteringen. Här är ett utdrag ur koden i collision.c som visar var du lägger till det:
+
+</p><div class="codeblock"><u>collision.c</u>
+void CollisionDetection(...
+...
+      if(collide(pA, pB)) {
+          ...
+          if( (pA-&gt;properties &amp; PLAYER) &amp;&amp; 
+              (pB-&gt;properties &amp; (COIN | POWER_UP)) ) {
+              ...
+              // ... add points or power-up capabilities
+              --- HÄR ---
+</div>
+
+Lägg till så att följande inträffar om en powerup har plockats av skeppet:<br>
+• &nbsp;  Skeppets hastighet pA-&gt;speed multipliceras med 1.6f.<br>
+• &nbsp;  Skottens hastighet ökar med en faktor 1.4.<br>
+• &nbsp;  Tiden mellan skott minskar (t ex med en faktor 0.66).<br>
+<p></p>
+<p>
+<script>startTips("Tips samt lösning för gameobject.h", "margin-top: -10px; width: auto;")</script></p><div class="tips" style="margin-top: -10px; width: auto;"> <input id="toggleID21" type="checkbox"><label for="toggleID21">Tips samt lösning för gameobject.h</label><div class="expand">
+Inför dessa två nya medlemsvariabler i struct GameObjects: 
+<div class="codeblock">typedef struct tGameObject{
+    ...
+    // new members for powerups - used by player
+    int         delayTime; // önskad tid mellan skott
+    float       shotSpeed; // skottens hastighet
+    ...
+</div> 
+<br>
+I player.c, där skotten skapas, kan du kontrollera hastighet och delay med:
+<div class="codeblock">    vec2f dir={0.0f*this-&gt;shotSpeed, -1.0f*this-&gt;shotSpeed};
+    createPlayerShot1(pos, dir);
+    this-&gt;delay = this-&gt;delayTime;
+</div> 
+<script>endTips();</script></div></div>
+<p></p>
+
+
+<script>startTips("Lösning för player.c", "margin-top: -10px; width: auto;")</script><div class="tips" style="margin-top: -10px; width: auto;"> <input id="toggleID22" type="checkbox"><label for="toggleID22">Lösning för player.c</label><div class="expand"> 
+<div class="codeblock">bool updateShip(GameObject* this)
+{
+    ...
+    if(state[SDL_SCANCODE_SPACE]) {
+        if(this-&gt;delay == 0) {
+            // Skapa ett skott.
+            // Låt det starta alldeles ovanför skeppet
+            vec2f pos = this-&gt;pos;
+            pos.y -= 0.8f * (this-&gt;gfxObj.outputHeight/2);
+            vec2f dir = {0.0f<b>*this-&gt;shotSpeed</b>, 
+                        -1.0f<b>*this-&gt;shotSpeed</b>};
+            createPlayerShot1(pos, dir);
+            <b>this-&gt;delay = this-&gt;delayTime; </b>
+        }
+    }
+    return true;
+}
+
+void createShip()
+{
+    ...
+<b>    ship.delayTime = 20;
+    ship.shotSpeed = 1;</b>
+    ...
+}
+</div>
+<script>endTips();</script></div></div>
+
+<script>startTips("Lösning för collision.c", "margin-top: 0px; width: auto;")</script><div class="tips" style="margin-top: 0px; width: auto;"> <input id="toggleID23" type="checkbox"><label for="toggleID23">Lösning för collision.c</label><div class="expand"> 
+<div class="codeblock">if(collide(pA, pB)) 
+{
+...
+if( (pA-&gt;properties &amp; PLAYER) &amp;&amp; (pB-&gt;properties &amp; (COIN | POWER_UP)) ) {
+    // Powerup/coin kan bara plockas av en spelare åt gången
+    pB-&gt;properties &amp;= ~COLL_CHECK; // Därför, slå av kollisionsdetektering
+    pB-&gt;properties |= TERMINATING; // kill coin/powerup  
+    // ... add points or power-up capabilities
+    <b>if(pB-&gt;properties &amp; POWER_UP) {
+        pA-&gt;speed *= 1.6f;
+        pA-&gt;delayTime /= 1.5f;
+        pA-&gt;shotSpeed *= 1.4f;
+    }</b>
+}
+...
+</div>
+<script>endTips();</script></div></div>
+
+<ul> <span style="margin-left: -40px;">Fullständiga projekt för lösningen kan du finna du här: </span> 
+<li style="padding-bottom:0;"> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProjekt_Mac_w4_uppg8.3.zip">SDLProjekt_Mac_w4_uppg8.3.zip</a></li>		   
+<li> <a href="http://www.cse.chalmers.se/~uffe/MOP/hemuppgifter/SDLProject_Windows_w4_uppg8.3.zip">SDLProject_Windows_w4_uppg8.3.zip</a></li>
+</ul>
+
+		  </dd>
+		</dl>
+		</div> <!-- uppg. -->
+		</div> <!-- contentbody -->
+
+<!--
+<script>startLosningWide();</script>
+<div class="codeblock">...
+
+<script>endLosningWide();</script>
+--> 
+</div>
+
+
+
+
+<!--
+Gör det svåraste förlopp du kan komma på.<br>
+
+	<div class="contentsection codesection" style="padding-bottom: 0px;">		
+
+		<div class="contentbody" style="text-align: justify;">
+
+		<div class="uppg">
+		<dl>		
+		   <dt>Uppg. 6</dt>
+		   <dd> <b> Starta och döda tasks. Static. Enum. State machine </b><br>
+
+
+Objekt kan lägga till andra objekt (t ex skeppet skapar skott). Andra objekt eller funktioner kan meddela dem.
+
+Multitaskingsystem. Annat sätt är med interrupts som ni får börja lära er denna vecka.
+
+Bara visa principerna för hur man gör kollisionsdetektering och skott.
+
+V5: Kontrollfråga - vad behöver modifieras och läggas till för att ditt spel skall kunna kompileras mot labdatorn MD407?
+ - SDL finns inte. Se "avsnitt Grafisk Display" i Arbetsboken. Rotation och bildinläsning finns inte. För keyboard-input, se avsnitt General Purpose IO i Arbetsboken.<br>  
+ - funktionerna i de inbyggda bibliotek som du använder. T ex rand() - se C-föreläsning 5 för rand(). strlen() - lätt för dig att själv implementera. 
+fmod(): From Apple:
+double
+fmod(double x, double y)
+{
+	double i, f;
+	
+	if (y == 0.0) {
+		errno = EDOM;
+		return 0.0;
+	}
+	
+	/* return f such that x = i*y + f for some integer i
+	   such that |f| < |y| and f has the same sign as x */
+	
+	i = floor(x/y);
+	f = x - i*y;
+	if ((x < 0.0) != (y < 0.0))
+		f = f-y;
+	return f;
+}
+
+
+<p>...</p>
+(Inom komponentbaserad programmering till skillnad från objektorientering grupperar man hellre sin programkod baserad på funktionalitet, <a href="https://www.raywenderlich.com/24878/introduction-to-component-based-architecture-in-games">vilket kanske bäst beskrivs av den här informella sidan</a>.)
+
+		  </dd>
+		</dl>
+		</div>
+		</div>
+
+
+<script>startLosningWide();</script>
+<div class="codeblock">...
+
+</div>
+<script>endLosningWide();</script> 
+
+-->
+
+
+</div> <!-- contentcontainer -->
+
+
+
+
+
+<footer> C-Programmering</footer>
+
+
+
+</body></html>
